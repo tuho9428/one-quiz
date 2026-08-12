@@ -16,10 +16,23 @@ export interface StudySet {
   description?: string;
 }
 
+export type DebugCodeTask =
+  | "identify-bug"
+  | "explain-behavior"
+  | "predict-output"
+  | "fix-code"
+  | "complete-code";
+
 interface BaseStudyQuestion {
   id: string;
   studySetId: string;
   concepts?: string[];
+  /** Optional code capability preserved even when legacy type is flashcard/write. */
+  codeSnippet?: string;
+  language?: string;
+  task?: DebugCodeTask;
+  /** Preserved source options. They may be reused by Multiple Choice even when the source type is legacy content. */
+  choices?: string[];
 }
 
 export interface FlashcardQuestion extends BaseStudyQuestion {
@@ -44,13 +57,6 @@ export interface WriteQuestion extends BaseStudyQuestion {
   importantKeywords: string[];
   explanation?: string;
 }
-
-export type DebugCodeTask =
-  | "identify-bug"
-  | "explain-behavior"
-  | "predict-output"
-  | "fix-code"
-  | "complete-code";
 
 export interface DebugCodeQuestion extends BaseStudyQuestion {
   type: "debug-code";

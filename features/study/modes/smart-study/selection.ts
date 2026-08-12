@@ -6,6 +6,7 @@ import type {
   StudyQuestion,
 } from "../../domain/types";
 import { isDueForReview } from "../../scheduling/scheduler";
+import { canStudyItemInMode, canUseInMultipleChoice, hasCodeCapability } from "../../domain/eligibility";
 
 export type SmartDifficultyLevel = 1 | 2 | 3 | 4;
 export type SmartPriorityBucket =
@@ -25,6 +26,7 @@ export interface SmartSelectionState {
   targetLevel: SmartDifficultyLevel;
   recentAttempts: StudyAttempt[];
   recentModes: StudyMode[];
+  availableQuestions?: StudyQuestion[];
 }
 
 const BUCKET_WEIGHTS: Record<SmartPriorityBucket, number> = {
@@ -32,13 +34,6 @@ const BUCKET_WEIGHTS: Record<SmartPriorityBucket, number> = {
   "recently-learned": 30,
   medium: 20,
   strong: 10,
-};
-
-const QUESTION_LEVELS: Record<StudyQuestion["type"], SmartDifficultyLevel> = {
-  "multiple-choice": 1,
-  flashcard: 2,
-  write: 3,
-  "debug-code": 4,
 };
 
 function latestAttemptFor(
@@ -66,8 +61,14 @@ function wasRecentMiss(attempt: StudyAttempt | undefined, now: Date): boolean {
   );
 }
 
-export function getQuestionLevel(question: StudyQuestion): SmartDifficultyLevel {
-  return QUESTION_LEVELS[question.type];
+export function getQuestionLevel(
+  question: StudyQuestion,
+  allItems: StudyQuestion[] = [question],
+): SmartDifficultyLevel {
+  if (canUseInMultipleChoice(question, allItems)) return 1;
+  if (hasCodeCapability(question)) return 4;
+  if (canStudyItemInMode(question, "write")) return 3;
+  return 2;
 }
 
 export function getPriorityBucket(
@@ -119,9 +120,9 @@ function getCandidateScore(
 ): number {
   const latestAttempt = latestAttemptFor(candidate.question.id, state.recentAttempts);
   const bucket = getPriorityBucket(candidate, state.recentAttempts, now);
-  const levelDistance = Math.abs(getQuestionLevel(candidate.question) - state.targetLevel);
+  const levelDistance = Math.abs(getQuestionLevel(candidate.question, state.availableQuestions) - state.targetLevel);
   const recentMode = state.recentModes.includes(
-    getPreferredMode(candidate.question, state.targetLevel, state.recentModes),
+    getPreferredMode(candidate.question, state.targetLevel, state.recentModes, state.availableQuestions),
   );
 
   return (
@@ -153,20 +154,15 @@ export function getPreferredMode(
   question: StudyQuestion,
   targetLevel: SmartDifficultyLevel,
   recentModes: StudyMode[] = [],
+  allItems: StudyQuestion[] = [question],
 ): StudyMode {
-  switch (question.type) {
-    case "multiple-choice":
-      return "multiple-choice";
-    case "flashcard":
-      return "flashcard";
-    case "debug-code":
-      return "debug-code";
-    case "write":
-      if (targetLevel >= 3 && !recentModes.slice(-2).includes("write")) {
-        return "write";
-      }
-      return recentModes.slice(-2).includes("rapid-recall") ? "write" : "rapid-recall";
-  }
+  if (targetLevel <= 1 && canStudyItemInMode(question, "multiple-choice", allItems)) return "multiple-choice";
+  if (targetLevel >= 4 && canStudyItemInMode(question, "debug-code", allItems)) return "debug-code";
+  if (targetLevel === 2 && question.type === "write" && canStudyItemInMode(question, "rapid-recall", allItems)) return "rapid-recall";
+  if (targetLevel >= 3 && canStudyItemInMode(question, "write", allItems) && !recentModes.slice(-2).includes("write")) return "write";
+  if (canStudyItemInMode(question, "flashcard", allItems)) return "flashcard";
+  if (canStudyItemInMode(question, "write", allItems)) return "write";
+  return "rapid-recall";
 }
 
 export function selectNextSmartQuestion(
@@ -219,4 +215,3 @@ export function getModeLabel(mode: StudyMode): string {
       return "Debug / Code";
   }
 }
-

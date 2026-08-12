@@ -47,11 +47,11 @@ describe("prepareMultipleChoiceSession", () => {
     );
   });
 
-  it("rejects questions that do not have exactly four answers", () => {
+  it("rejects questions that do not have at least two answers", () => {
     expect(() =>
       prepareMultipleChoiceSession([
-        { ...questions[0], distractors: ["Only one distractor"] },
+        { ...questions[0], distractors: [] },
       ]),
-    ).toThrow("must have exactly 4 answers");
+    ).toThrow("must have at least 2 answers");
   });
 });

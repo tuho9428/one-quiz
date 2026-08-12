@@ -79,15 +79,15 @@ function mapRowToQuestion(row: StudyItemRow): StudyQuestion {
 
   switch (row.type) {
     case "flashcard":
-      return { ...base, type: "flashcard", prompt: row.question, answer: row.answer, explanation: row.explanation ?? undefined };
+      return { ...base, type: "flashcard", prompt: row.question, answer: row.answer, explanation: row.explanation ?? undefined, choices: row.options.map((option) => option.text), codeSnippet: row.code_snippet ?? undefined, language: row.code_snippet ? row.language ?? "text" : undefined, task: row.code_snippet ? row.task : undefined };
     case "write":
-      return { ...base, type: "write", question: row.question, expectedAnswer: row.answer, importantKeywords: row.tags, explanation: row.explanation ?? undefined };
+      return { ...base, type: "write", question: row.question, expectedAnswer: row.answer, importantKeywords: row.tags, explanation: row.explanation ?? undefined, choices: row.options.map((option) => option.text), codeSnippet: row.code_snippet ?? undefined, language: row.code_snippet ? row.language ?? "text" : undefined, task: row.code_snippet ? row.task : undefined };
     case "multiple-choice": {
       const correct = row.options.find((option) => option.isCorrect)?.text ?? row.answer;
-      return { ...base, type: "multiple-choice", question: row.question, correctAnswer: correct, distractors: row.options.filter((option) => !option.isCorrect).map((option) => option.text), explanation: row.explanation ?? undefined };
+      return { ...base, type: "multiple-choice", question: row.question, correctAnswer: correct, distractors: row.options.filter((option) => !option.isCorrect).map((option) => option.text), explanation: row.explanation ?? undefined, codeSnippet: row.code_snippet ?? undefined, language: row.code_snippet ? row.language ?? "text" : undefined, task: row.code_snippet ? row.task : undefined };
     }
     case "debug-code":
-      return { ...base, type: "debug-code", task: row.task, problemStatement: row.question, language: row.language ?? "text", codeSnippet: row.code_snippet ?? "", expectedExplanation: row.answer, correctedCode: row.explanation ?? undefined };
+      return { ...base, type: "debug-code", task: row.task, problemStatement: row.question, language: row.language ?? "text", codeSnippet: row.code_snippet ?? "", expectedExplanation: row.answer, correctedCode: row.explanation ?? undefined, choices: row.options.map((option) => option.text) };
   }
 }
 
@@ -236,7 +236,7 @@ export async function importStudyItems(
       const itemId = itemResult.rows[0].id;
 
       await client.query("delete from study_item_options where study_item_id = $1", [itemId]);
-      if (item.type === "multiple-choice") {
+      if (item.choices && item.choices.length > 0) {
         for (const [optionPosition, optionText] of (item.choices ?? []).entries()) {
           await client.query(
             `insert into study_item_options (id, study_item_id, option_text, position, is_correct)
@@ -280,13 +280,13 @@ export async function exportStudySet(studySetId: string): Promise<PortableStudyI
   return set.questions.map((question) => {
     switch (question.type) {
       case "flashcard":
-        return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts };
+        return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts, choices: question.choices };
       case "write":
-        return { type: "write", question: question.question, answer: question.expectedAnswer, explanation: question.explanation, tags: question.concepts };
+        return { type: "write", question: question.question, answer: question.expectedAnswer, explanation: question.explanation, tags: question.concepts, choices: question.choices };
       case "multiple-choice":
         return { type: "multiple_choice", question: question.question, answer: question.correctAnswer, explanation: question.explanation, choices: [question.correctAnswer, ...question.distractors], tags: question.concepts };
       case "debug-code":
-        return { type: "debug_code", question: question.problemStatement, answer: question.expectedExplanation, codeSnippet: question.codeSnippet, language: question.language, task: question.task, tags: question.concepts };
+        return { type: "debug_code", question: question.problemStatement, answer: question.expectedExplanation, codeSnippet: question.codeSnippet, language: question.language, task: question.task, tags: question.concepts, choices: question.choices };
     }
   });
 }

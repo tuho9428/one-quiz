@@ -39,9 +39,30 @@ const importConfig = {
     description: "Interview practice covering Walmart MP-IRIS modules, frontend ownership, React architecture, testing, CI/CD, production troubleshooting, and distributed teamwork.",
     sourceKey: "walmart-iris-interview-prep-v1",
   },
+  html: {
+    dataFile: "html-css-frontend-interview-prep.json",
+    setId: "html-css-frontend-interview-prep",
+    title: "HTML, CSS & Frontend Interview Prep",
+    description: "Interview practice covering semantic HTML, CSS layout, responsive design, accessibility, API integration, web security, testing, performance, and Walmart IRIS UI migration.",
+    sourceKey: "html-css-frontend-interview-prep-v1",
+  },
+  coding: {
+    dataFile: "react-coding-practical-interview-prep.json",
+    setId: "react-coding-practical-interview-prep",
+    title: "React Coding & Practical Interview Prep",
+    description: "Hands-on React interview practice covering Todo apps, autocomplete, debounce, API fetching, reusable tables, steppers, custom hooks, forms, game state, stale closures, and testing.",
+    sourceKey: "react-coding-practical-interview-prep-v1",
+  },
+  "react-short": {
+    dataFile: "react-short.json",
+    setId: "react-short-interview-prep",
+    title: "React Interview Prep (Short)",
+    description: "Shorter React interview practice covering components, hooks, state, performance, and debugging.",
+    sourceKey: "react-short-interview-prep-v1",
+  },
 };
 const config = importConfig[importName];
-if (!config) throw new Error(`Unknown import: ${importName}. Choose javascript or resume.`);
+if (!config) throw new Error(`Unknown import: ${importName}. Choose react, javascript, resume, html, or coding.`);
 const dataPath = path.join(root, "data", config.dataFile);
 const parsed = parsePortableStudyJson(fs.readFileSync(dataPath, "utf8"));
 if (parsed.syntaxError || parsed.errors.length > 0) {

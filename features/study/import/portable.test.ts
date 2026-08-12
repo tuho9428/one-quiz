@@ -46,4 +46,42 @@ describe("portable study JSON", () => {
     expect(portable).not.toHaveProperty("id");
     expect(portable).not.toHaveProperty("studySetId");
   });
+
+  it("preserves code capability on a legacy write item", () => {
+    const result = parsePortableStudyJson(JSON.stringify([{
+      type: "write",
+      question: "Explain this code",
+      answer: "It returns 42.",
+      codeSnippet: "return 42;",
+      language: "javascript",
+      task: "explain-behavior",
+    }]));
+
+    expect(result.validItems[0]).toEqual(expect.objectContaining({
+      type: "write",
+      codeSnippet: "return 42;",
+      task: "explain-behavior",
+    }));
+  });
+
+  it("accepts a debug_code item with valid explicit choices even without a code snippet", () => {
+    const result = parsePortableStudyJson(JSON.stringify([{
+      type: "debug_code",
+      question: "What is the difference between alt text and an ARIA label?",
+      answer: "Alt text describes meaningful images, while aria-label can provide an accessible name for an interactive element without visible text",
+      choices: [
+        "They are interchangeable for every element",
+        "Alt text describes meaningful images, while aria-label can provide an accessible name for an interactive element without visible text",
+        "Alt text is only for buttons",
+        "aria-label is only for decorative images",
+      ],
+      tags: ["Accessibility", "Images", "ARIA"],
+    }]));
+
+    expect(result.errors).toEqual([]);
+    expect(result.validItems[0]).toEqual(expect.objectContaining({
+      type: "debug-code",
+      choices: expect.arrayContaining(["They are interchangeable for every element"]),
+    }));
+  });
 });

@@ -101,7 +101,7 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
   }
 
   let choices: string[] | undefined;
-  if (type === "multiple-choice") {
+  if (type === "multiple-choice" || value.choices !== undefined) {
     if (!Array.isArray(value.choices) || value.choices.some((choice) => typeof choice !== "string" || !choice.trim())) {
       errors.push("multiple_choice requires a non-empty choices array of strings");
     } else {
@@ -125,7 +125,13 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
   } else if (typeof value.language === "string" && value.language.trim()) {
     language = value.language.trim();
   }
-  if (type === "debug-code" && !codeSnippet?.trim()) {
+  const hasValidExplicitChoices = Boolean(
+    choices &&
+    choices.length >= 2 &&
+    nonEmptyString(value.answer) &&
+    choices.includes(value.answer.trim()),
+  );
+  if (type === "debug-code" && !codeSnippet?.trim() && !hasValidExplicitChoices) {
     errors.push("debug_code requires codeSnippet");
   }
 
@@ -156,8 +162,8 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
       choices,
       codeSnippet,
       language: type === "debug-code" ? language ?? "text" : language,
-      task: type === "debug-code"
-        ? (value.task as DebugCodeQuestion["task"] | undefined) ?? "explain-behavior"
+      task: typeof value.task === "string"
+        ? value.task as DebugCodeQuestion["task"]
         : undefined,
     },
   };
@@ -194,13 +200,13 @@ export function parsePortableStudyJson(input: string): PortableParseResult {
 export function portableItemFromStudyQuestion(question: StudyQuestion): PortableStudyItem {
   switch (question.type) {
     case "flashcard":
-      return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts };
+      return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts, choices: question.choices, codeSnippet: question.codeSnippet, language: question.language, task: question.task };
     case "write":
-      return { type: "write", question: question.question, answer: question.expectedAnswer, explanation: question.explanation, tags: question.concepts };
+      return { type: "write", question: question.question, answer: question.expectedAnswer, explanation: question.explanation, tags: question.concepts, choices: question.choices, codeSnippet: question.codeSnippet, language: question.language, task: question.task };
     case "multiple-choice":
-      return { type: "multiple_choice", question: question.question, answer: question.correctAnswer, explanation: question.explanation, tags: question.concepts, choices: [question.correctAnswer, ...question.distractors] };
+      return { type: "multiple_choice", question: question.question, answer: question.correctAnswer, explanation: question.explanation, tags: question.concepts, choices: [question.correctAnswer, ...question.distractors], codeSnippet: question.codeSnippet, language: question.language, task: question.task };
     case "debug-code":
-      return { type: "debug_code", question: question.problemStatement, answer: question.expectedExplanation, tags: question.concepts, codeSnippet: question.codeSnippet, language: question.language, task: question.task };
+      return { type: "debug_code", question: question.problemStatement, answer: question.expectedExplanation, tags: question.concepts, choices: question.choices, codeSnippet: question.codeSnippet, language: question.language, task: question.task };
   }
 }
 
@@ -241,6 +247,7 @@ Each item may use:
 }
 
 Rules:
+- type is the original/preferred content presentation and is not exclusive; items with question and answer can be reused in Flashcards, Write, Rapid Recall, Smart Study, Weak Areas, and Exam
 - question and answer are required
 - use flashcard for basic recall
 - use multiple_choice when useful
@@ -259,12 +266,12 @@ export function toStudyQuestion(
 ): StudyQuestion {
   switch (item.type) {
     case "flashcard":
-      return { id, studySetId, type: "flashcard", prompt: item.question, answer: item.answer, explanation: item.explanation, concepts: item.tags } satisfies FlashcardQuestion;
+      return { id, studySetId, type: "flashcard", prompt: item.question, answer: item.answer, explanation: item.explanation, concepts: item.tags, choices: item.choices, codeSnippet: item.codeSnippet, language: item.language, task: item.task } satisfies FlashcardQuestion;
     case "write":
-      return { id, studySetId, type: "write", question: item.question, expectedAnswer: item.answer, explanation: item.explanation, importantKeywords: item.tags, concepts: item.tags } satisfies WriteQuestion;
+      return { id, studySetId, type: "write", question: item.question, expectedAnswer: item.answer, explanation: item.explanation, importantKeywords: item.tags, concepts: item.tags, choices: item.choices, codeSnippet: item.codeSnippet, language: item.language, task: item.task } satisfies WriteQuestion;
     case "multiple-choice":
-      return { id, studySetId, type: "multiple-choice", question: item.question, correctAnswer: item.answer, distractors: (item.choices ?? []).filter((choice) => choice !== item.answer), explanation: item.explanation, concepts: item.tags } satisfies MultipleChoiceQuestion;
+      return { id, studySetId, type: "multiple-choice", question: item.question, correctAnswer: item.answer, distractors: (item.choices ?? []).filter((choice) => choice !== item.answer), explanation: item.explanation, concepts: item.tags, codeSnippet: item.codeSnippet, language: item.language, task: item.task } satisfies MultipleChoiceQuestion;
     case "debug-code":
-      return { id, studySetId, type: "debug-code", task: item.task ?? "explain-behavior", problemStatement: item.question, language: item.language ?? "text", codeSnippet: item.codeSnippet ?? "", expectedExplanation: item.answer, concepts: item.tags } satisfies DebugCodeQuestion;
+      return { id, studySetId, type: "debug-code", task: item.task ?? "explain-behavior", problemStatement: item.question, language: item.language ?? "text", codeSnippet: item.codeSnippet ?? "", expectedExplanation: item.answer, concepts: item.tags, choices: item.choices } satisfies DebugCodeQuestion;
   }
 }

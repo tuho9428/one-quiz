@@ -3,8 +3,23 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import type { FlashcardQuestion } from "../domain/types";
 import type { StudyQuestion } from "../domain/types";
+import type { FlashcardQuestion } from "../domain/types";
+import { canStudyItemInMode, toFlashcardQuestion } from "../domain/eligibility";
+import { getQuestionText } from "../domain/eligibility";
+import { StudyModeChooser } from "./StudyModeChooser";
+import { MultipleChoiceDiagnostics } from "./MultipleChoiceDiagnostics";
+import {
+  clearStudyQuestionSelection,
+  filterStudyQuestions,
+  getStudyItemsPage,
+  getStudyItemsPageCount,
+  getStudyItemsPageRange,
+  getStudyItemsPageWindow,
+  getSelectedStudyQuestions,
+  selectVisibleStudyQuestions,
+  toggleStudyQuestionSelection,
+} from "./selection";
 import {
   createStatsForQuestions,
   type StatsByQuestion,
@@ -33,11 +48,35 @@ export function StudySetOverview({
   description,
   questions,
 }: StudySetOverviewProps) {
-  const cards = questions.filter((question): question is FlashcardQuestion => question.type === "flashcard");
+  const cards: FlashcardQuestion[] = questions.filter((question) => canStudyItemInMode(question, "flashcard")).map(toFlashcardQuestion);
   const [statsByQuestion, setStatsByQuestion] = useState<StatsByQuestion>(() =>
     createStatsForQuestions(cards),
   );
   const [reviewSession, setReviewSession] = useState<ReviewSession | null>(null);
+  const [search, setSearch] = useState("");
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [isModeChooserOpen, setIsModeChooserOpen] = useState(false);
+  const [isSelectionExpanded, setIsSelectionExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const filteredQuestions = useMemo(
+    () => filterStudyQuestions(questions, search),
+    [questions, search],
+  );
+  const pageCount = getStudyItemsPageCount(filteredQuestions.length);
+  const renderedQuestions = getStudyItemsPage(filteredQuestions, currentPage);
+  const pageRange = getStudyItemsPageRange(filteredQuestions.length, currentPage);
+  const mobilePageWindow = getStudyItemsPageWindow(currentPage, pageCount);
+  const selectedQuestions = useMemo(
+    () => getSelectedStudyQuestions(questions, selectedItemIds),
+    [questions, selectedItemIds],
+  );
+  const allFilteredSelected = filteredQuestions.length > 0 && filteredQuestions.every((question) => selectedItemIds.includes(question.id));
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
 
   const dueCards = useMemo(
     () =>
@@ -162,6 +201,89 @@ export function StudySetOverview({
           <SummaryMetric label="Items" value={questions.length} tone="teal" />
         </section>
 
+        <section className="rounded-[1.5rem] border border-[#d5e2df] bg-[#fbfdfc] p-5 dark:border-[#2d4440] dark:bg-[#182320] sm:p-6" aria-labelledby="study-items-heading">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h2 id="study-items-heading" className="text-lg font-semibold tracking-tight sm:text-xl">Choose specific items</h2>
+              {selectedItemIds.length > 0 ? <p className="mt-1 text-sm font-semibold text-[#0f766e] dark:text-[#5eead4]">{selectedItemIds.length} selected</p> : <p className="mt-1 text-sm text-[#66807a] dark:text-[#a8bdb7]">Create a focused study session from specific questions.</p>}
+            </div>
+            <div className="flex shrink-0 gap-2">
+              {selectedItemIds.length > 0 && !isSelectionExpanded && <button type="button" onClick={() => setIsModeChooserOpen(true)} className="min-h-10 rounded-xl bg-[#0f766e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#0b625b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]">Study Selected</button>}
+              <button type="button" onClick={() => setIsSelectionExpanded((expanded) => !expanded)} aria-expanded={isSelectionExpanded} aria-controls="study-item-selection-panel" className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 text-sm font-semibold text-[#24564e] hover:bg-[#e8f1ee] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">{isSelectionExpanded ? "Collapse" : selectedItemIds.length > 0 ? "Change Selection" : "Choose Items"}</button>
+            </div>
+          </div>
+          {isSelectionExpanded && <div id="study-item-selection-panel" className="mt-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 id="study-items-heading" className="text-2xl font-semibold tracking-tight">Study items</h2>
+              <p className="mt-1 text-sm text-[#66807a] dark:text-[#a8bdb7]">Select questions to create a focused temporary session.</p>
+            </div>
+            <label className="block w-full sm:max-w-xs">
+              <span className="sr-only">Search questions and tags</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="Search questions or tags..."
+                className="min-h-11 w-full rounded-xl border border-[#b9cfca] bg-[#f8fbfa] px-4 py-2 text-sm text-[#16322e] outline-none placeholder:text-[#87a19a] focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/15 dark:border-[#3b5a54] dark:bg-[#1b2a27] dark:text-[#edf5f1] dark:placeholder:text-[#76918a] dark:focus:border-[#5eead4]"
+              />
+            </label>
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+            <button type="button" onClick={() => setSelectedItemIds((current) => selectVisibleStudyQuestions(current, filteredQuestions))} disabled={filteredQuestions.length === 0 || allFilteredSelected} className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 font-semibold text-[#24564e] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">{search.trim() ? `Select all ${filteredQuestions.length} matching` : `Select all ${filteredQuestions.length} items`}</button>
+            <button type="button" onClick={() => setSelectedItemIds(clearStudyQuestionSelection())} disabled={selectedItemIds.length === 0} className="min-h-10 rounded-xl px-3 py-2 font-semibold text-[#55716a] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 dark:text-[#a8bdb7] dark:hover:bg-[#20332f]">Clear selection</button>
+            <span className="ml-auto text-[#66807a] dark:text-[#a8bdb7]">{search.trim() ? `${filteredQuestions.length} matching` : `${questions.length} total`} · {selectedItemIds.length} selected</span>
+          </div>
+
+          {filteredQuestions.length > 0 ? (
+            <div className="mt-4 divide-y divide-[#d5e2df] rounded-xl border border-[#d5e2df] dark:divide-[#2d4440] dark:border-[#2d4440]">
+              {renderedQuestions.map((question) => {
+                const isSelected = selectedItemIds.includes(question.id);
+                return (
+                  <div key={question.id} className="flex items-start gap-3 p-4 first:rounded-t-xl last:rounded-b-xl hover:bg-[#f3f8f6] dark:hover:bg-[#1e2d2a]">
+                    <input
+                      id={`select-${question.id}`}
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => setSelectedItemIds((current) => toggleStudyQuestionSelection(current, question.id))}
+                      aria-label={`Select ${getQuestionText(question)}`}
+                      className="mt-1 h-5 w-5 shrink-0 accent-[#0f766e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e]"
+                    />
+                    <div className="min-w-0">
+                      <p className="font-semibold leading-6">{getQuestionText(question)}</p>
+                      {question.concepts && question.concepts.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{question.concepts.map((concept) => <span key={concept} className="rounded-md bg-[#e8f1ee] px-2 py-1 text-xs font-medium text-[#55716a] dark:bg-[#20332f] dark:text-[#b8e4da]">{concept}</span>)}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-5 rounded-xl border border-dashed border-[#9ebbb3] p-5 text-sm text-[#66807a] dark:border-[#4d7167] dark:text-[#a8bdb7]">No study items match this search.</p>
+          )}
+          <div className="mt-4 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[#66807a] dark:text-[#a8bdb7]">Showing {pageRange.start}-{pageRange.end} of {filteredQuestions.length}{search.trim() ? " matching" : ""}</p>
+            {filteredQuestions.length > 0 && <nav aria-label="Study item pages" className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage <= 1} className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 font-semibold text-[#24564e] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Previous</button>
+              <div className="flex items-center gap-1 sm:hidden" aria-label={`Page ${currentPage} of ${pageCount}`}>
+                {mobilePageWindow.map((page) => <PageButton key={page} page={page} currentPage={currentPage} onSelect={setCurrentPage} />)}
+              </div>
+              <div className="hidden flex-wrap items-center gap-1 sm:flex" aria-label={`Page ${currentPage} of ${pageCount}`}>
+                {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => <button key={page} type="button" onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined} className={`min-h-10 min-w-10 rounded-xl px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] ${currentPage === page ? "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#10221f]" : "border border-[#b9cfca] text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"}`}>{page}</button>)}
+              </div>
+              <button type="button" onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))} disabled={currentPage >= pageCount} className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 font-semibold text-[#24564e] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Next</button>
+            </nav>}
+          </div>
+          </div>}
+        </section>
+
+        {isSelectionExpanded && selectedItemIds.length > 0 && (
+          <section className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-[#9ebbb3] bg-[#e8f5f1]/95 p-4 shadow-[0_12px_40px_rgba(27,64,57,0.16)] backdrop-blur dark:border-[#3b6a5e] dark:bg-[#183b35]/95 sm:flex-row sm:items-center sm:justify-between" aria-label="Selected study items">
+            <p className="font-semibold text-[#24564e] dark:text-[#d2f6ee]">{selectedItemIds.length} selected</p>
+            <button type="button" onClick={() => setIsModeChooserOpen(true)} className="min-h-11 rounded-xl bg-[#0f766e] px-5 py-2 font-semibold text-white hover:bg-[#0b625b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]">Study Selected</button>
+          </section>
+        )}
+
         {questions.length === 0 && (
           <section className="rounded-[1.5rem] border border-dashed border-[#9ebbb3] bg-[#fbfdfc] p-6 dark:border-[#4d7167] dark:bg-[#182320]">
             <h2 className="text-xl font-semibold">This study set is empty.</h2>
@@ -174,11 +296,11 @@ export function StudySetOverview({
         <section>
           <SectionHeading title="Study Modes" description="Choose a focused way to practice this material." />
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <ModeCard href={`/sets/${setId}/study/flashcards`} title="Flashcards" description="Quick recall and spaced repetition" disabled={cards.length === 0} />
-            <ModeCard href={`/sets/${setId}/study/multiple-choice`} title="Multiple Choice" description="Build recognition, then confirm the reason" disabled={!questions.some((question) => question.type === "multiple-choice")} />
-            <ModeCard href={`/sets/${setId}/study/write`} title="Write" description="Recall answers without hints" disabled={!questions.some((question) => question.type === "write")} />
-            <ModeCard href={`/sets/${setId}/study/rapid-recall`} title="Rapid Recall" description="Answer as many as possible against the clock" disabled={!questions.some((question) => question.type === "write")} />
-            <ModeCard href={`/sets/${setId}/study/debug-code`} title="Debug / Code" description="Explain bugs, behavior, and fixes" disabled={!questions.some((question) => question.type === "debug-code")} />
+            <ModeCard href={`/sets/${setId}/study/flashcards`} title="Flashcards" description={`Quick recall and spaced repetition · ${cards.length} available`} disabled={cards.length === 0} />
+            <ModeCard href={`/sets/${setId}/study/multiple-choice`} title="Multiple Choice" description={`Build recognition, then confirm the reason · ${questions.filter((question) => canStudyItemInMode(question, "multiple-choice", questions)).length} available`} disabled={!questions.some((question) => canStudyItemInMode(question, "multiple-choice", questions))} />
+            <ModeCard href={`/sets/${setId}/study/write`} title="Write" description={`Recall answers without hints · ${questions.filter((question) => canStudyItemInMode(question, "write")).length} available`} disabled={!questions.some((question) => canStudyItemInMode(question, "write"))} />
+            <ModeCard href={`/sets/${setId}/study/rapid-recall`} title="Rapid Recall" description={`Answer as many as possible against the clock · ${questions.filter((question) => canStudyItemInMode(question, "rapid-recall")).length} available`} disabled={!questions.some((question) => canStudyItemInMode(question, "rapid-recall"))} />
+            <ModeCard href={`/sets/${setId}/study/debug-code`} title="Debug / Code" description={`Explain bugs, behavior, and fixes · ${questions.filter((question) => canStudyItemInMode(question, "debug-code")).length} available`} disabled={!questions.some((question) => canStudyItemInMode(question, "debug-code"))} />
             <ModeCard
               title="Weak Areas"
               description="Practice concepts you miss most often"
@@ -187,6 +309,8 @@ export function StudySetOverview({
             />
           </div>
         </section>
+
+        <MultipleChoiceDiagnostics questions={questions} />
 
         <section className="flex flex-col gap-5 rounded-2xl border border-[#d5e2df] bg-[#fbfdfc] p-5 dark:border-[#2d4440] dark:bg-[#182320] sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
@@ -221,6 +345,7 @@ export function StudySetOverview({
           </Link>
         </section>
       </div>
+      {isModeChooserOpen && <StudyModeChooser setId={setId} selectedQuestions={selectedQuestions} onClose={() => setIsModeChooserOpen(false)} />}
     </main>
   );
 }
@@ -246,6 +371,28 @@ function SummaryMetric({ label, value, tone }: { label: string; value: number; t
       <p className="text-xs text-[#66807a] dark:text-[#94aea7] sm:text-sm">{label}</p>
       <p className={`mt-2 text-3xl font-semibold tracking-tight ${toneClass}`}>{value}</p>
     </div>
+  );
+}
+
+function PageButton({
+  page,
+  currentPage,
+  onSelect,
+}: {
+  page: number;
+  currentPage: number;
+  onSelect: (page: number) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(page)}
+      aria-current={currentPage === page ? "page" : undefined}
+      aria-label={`Go to page ${page}`}
+      className={`min-h-10 min-w-10 rounded-xl px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] ${currentPage === page ? "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#10221f]" : "border border-[#b9cfca] text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"}`}
+    >
+      {page}
+    </button>
   );
 }
 

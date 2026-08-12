@@ -15,6 +15,7 @@ import type {
   StudyQuestion,
   WriteQuestion,
 } from "../../domain/types";
+import { canStudyItemInMode, hasCodeCapability, toDebugCodeQuestion, toFlashcardQuestion, toMultipleChoiceQuestion, toWriteQuestion } from "../../domain/eligibility";
 import type { WriteGradingResult } from "../../grading/write-grader";
 import { scoreTextAnswerDetailed } from "../../grading/text-scoring";
 import {
@@ -74,56 +75,11 @@ function formatStudyTime(milliseconds: number): string {
 }
 
 function questionPrompt(question: StudyQuestion): string {
-  switch (question.type) {
-    case "flashcard":
-      return question.prompt;
-    case "multiple-choice":
-    case "write":
-    case "debug-code":
-      return question.type === "debug-code"
-        ? question.problemStatement
-        : question.question;
-  }
+  return toWriteQuestion(question).question;
 }
 
 function asWriteQuestion(question: StudyQuestion): WriteQuestion {
-  switch (question.type) {
-    case "write":
-      return question;
-    case "debug-code":
-      return {
-        id: question.id,
-        studySetId: question.studySetId,
-        type: "write",
-        concepts: question.concepts,
-        question: question.problemStatement,
-        expectedAnswer: question.expectedExplanation,
-        importantKeywords: question.concepts ?? [],
-        explanation: question.correctedCode,
-      };
-    case "flashcard":
-      return {
-        id: question.id,
-        studySetId: question.studySetId,
-        type: "write",
-        concepts: question.concepts,
-        question: question.prompt,
-        expectedAnswer: question.answer,
-        importantKeywords: question.concepts ?? [],
-        explanation: question.explanation,
-      };
-    case "multiple-choice":
-      return {
-        id: question.id,
-        studySetId: question.studySetId,
-        type: "write",
-        concepts: question.concepts,
-        question: question.question,
-        expectedAnswer: question.correctAnswer,
-        importantKeywords: question.concepts ?? [],
-        explanation: question.explanation,
-      };
-  }
+  return toWriteQuestion(question);
 }
 
 function getQuestionConcepts(question: StudyQuestion): string[] {
@@ -136,8 +92,8 @@ function createTextAttempt(
   userAnswer: string,
   responseTimeMs: number,
 ): { attempt: StudyAttempt; grade: WriteGradingResult | DebugCodeGradingResult } {
-  if (question.type === "debug-code") {
-    const grade = deterministicDebugCodeGrader.grade(question, userAnswer);
+  if (mode === "debug-code" && hasCodeCapability(question)) {
+    const grade = deterministicDebugCodeGrader.grade(toDebugCodeQuestion(question), userAnswer);
     const attempt = createStudyAttemptFromGrade({
       id: createAttemptId(),
       question,
@@ -249,6 +205,7 @@ export function SmartStudy({
           targetLevel: nextLevel,
           recentAttempts: currentAttempts,
           recentModes: currentRecentModes,
+          availableQuestions: sessionQuestions,
         },
         Math.random,
       ),
@@ -256,7 +213,7 @@ export function SmartStudy({
   );
 
   const setCurrentQuestion = useCallback(
-    (candidate: SmartStudyCandidate | undefined, level: SmartDifficultyLevel, modes: StudyMode[]) => {
+    (candidate: SmartStudyCandidate | undefined, level: SmartDifficultyLevel, modes: StudyMode[], availableQuestions: StudyQuestion[]) => {
       if (!candidate) {
         setCurrentQuestionId(null);
         setCurrentMode(null);
@@ -264,12 +221,13 @@ export function SmartStudy({
         return;
       }
 
-      const mode = getPreferredMode(candidate.question, level, modes);
+      const mode = getPreferredMode(candidate.question, level, modes, availableQuestions);
       setCurrentQuestionId(candidate.question.id);
       setCurrentMode(mode);
+      const multipleChoiceQuestion = toMultipleChoiceQuestion(candidate.question, availableQuestions);
       setCurrentOptions(
-        candidate.question.type === "multiple-choice"
-          ? prepareMultipleChoiceSession([candidate.question])[0]?.options ?? []
+        mode === "multiple-choice" && multipleChoiceQuestion
+          ? prepareMultipleChoiceSession([multipleChoiceQuestion])[0]?.options ?? []
           : [],
       );
       setAnswer("");
@@ -307,7 +265,7 @@ export function SmartStudy({
       setIsComplete(false);
       setIsRunning(true);
       sessionStartedAtRef.current = Date.now();
-      setCurrentQuestion(first, 1, []);
+      setCurrentQuestion(first, 1, [], sessionQuestions);
     },
     [chooseNextQuestion, duration, questions, setCurrentQuestion, statsByQuestion],
   );
@@ -397,7 +355,7 @@ export function SmartStudy({
       if (
         !isRunning ||
         !currentQuestion ||
-        currentQuestion.type !== "flashcard" ||
+        currentMode !== "flashcard" ||
         !isRevealed ||
         feedback
       ) {
@@ -407,14 +365,14 @@ export function SmartStudy({
       recordAttempt(
         createFlashcardAttempt({
           id: createAttemptId(),
-          question: currentQuestion,
+          question: toFlashcardQuestion(currentQuestion),
           rating,
           responseTimeMs: responseTime(),
           timestamp: new Date().toISOString(),
         }),
       );
     },
-    [currentQuestion, feedback, isRevealed, isRunning, recordAttempt],
+    [currentMode, currentQuestion, feedback, isRevealed, isRunning, recordAttempt],
   );
 
   const skipQuestion = useCallback(() => {
@@ -448,7 +406,7 @@ export function SmartStudy({
       nextModes,
     );
     setTargetLevel(feedback.nextLevel);
-    setCurrentQuestion(next, feedback.nextLevel, nextModes);
+    setCurrentQuestion(next, feedback.nextLevel, nextModes, activeQuestions);
     setFeedback(null);
   }, [activeQuestions, attempts, chooseNextQuestion, currentQuestionId, feedback, recentModes, setCurrentQuestion, statsByQuestion]);
 
@@ -667,6 +625,11 @@ export function SmartStudy({
 
   const feedbackGrade = feedback?.attempt;
   const textQuestion = currentQuestion ? asWriteQuestion(currentQuestion) : null;
+  const flashcardQuestion = currentQuestion ? toFlashcardQuestion(currentQuestion) : null;
+  const multipleChoiceQuestion = currentQuestion ? toMultipleChoiceQuestion(currentQuestion, activeQuestions) : null;
+  const debugQuestion = currentQuestion && canStudyItemInMode(currentQuestion, "debug-code", activeQuestions)
+    ? toDebugCodeQuestion(currentQuestion)
+    : null;
 
   return (
     <main className="min-h-[100dvh] bg-[#f3f6f5] px-4 py-5 text-[#16322e] dark:bg-[#101817] dark:text-[#edf5f1] sm:px-8 sm:py-8">
@@ -699,12 +662,12 @@ export function SmartStudy({
           </div>
 
           <div className="mt-10">
-            {currentMode === "multiple-choice" && currentQuestion.type === "multiple-choice" ? (
+            {currentMode === "multiple-choice" && multipleChoiceQuestion ? (
               <>
-                <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{currentQuestion.question}</h2>
+                <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{multipleChoiceQuestion.question}</h2>
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {currentOptions.map((option, index) => {
-                    const isCorrect = option.text === currentQuestion.correctAnswer;
+                    const isCorrect = option.text === multipleChoiceQuestion.correctAnswer;
                     const isSelected = feedbackGrade?.userAnswer === option.text;
                     const optionClass = feedback
                       ? isCorrect
@@ -722,24 +685,24 @@ export function SmartStudy({
                   })}
                 </div>
               </>
-            ) : currentMode === "flashcard" && currentQuestion.type === "flashcard" ? (
+            ) : currentMode === "flashcard" && flashcardQuestion ? (
               <div className="text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f766e] dark:text-[#5eead4]">Prompt</p>
-                <h2 className="mx-auto mt-5 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{currentQuestion.prompt}</h2>
+                <h2 className="mx-auto mt-5 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{flashcardQuestion.prompt}</h2>
                 {!isRevealed && !feedback ? (
                   <button type="button" onClick={() => setIsRevealed(true)} className="mt-10 min-h-12 rounded-xl bg-[#0f766e] px-8 py-3 font-semibold text-white transition hover:bg-[#0b625b] active:translate-y-px dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]">Show Answer</button>
                 ) : (
                   <>
-                    <p className="mx-auto mt-8 max-w-2xl text-2xl font-semibold leading-tight text-[#24564e] dark:text-[#c5ebe2] sm:text-4xl">{currentQuestion.answer}</p>
-                    {currentQuestion.explanation && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[#66807a] dark:text-[#a8bdb7]">{currentQuestion.explanation}</p>}
+                    <p className="mx-auto mt-8 max-w-2xl text-2xl font-semibold leading-tight text-[#24564e] dark:text-[#c5ebe2] sm:text-4xl">{flashcardQuestion.answer}</p>
+                    {flashcardQuestion.explanation && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[#66807a] dark:text-[#a8bdb7]">{flashcardQuestion.explanation}</p>}
                     {!feedback && <div className="mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">{FLASHCARD_RATINGS.map((rating) => <button key={rating} type="button" onClick={() => rateFlashcard(rating)} className="min-h-14 rounded-xl border border-[#c8d9d5] bg-[#f3f8f6] px-3 py-2 font-semibold capitalize text-[#24564e] transition hover:border-[#0f766e] hover:bg-[#e8f1ee] active:translate-y-px dark:border-[#3b5a54] dark:bg-[#1e2d2a] dark:text-[#b8e4da] dark:hover:border-[#5eead4] dark:hover:bg-[#20332f]">{rating}</button>)}</div>}
                   </>
                 )}
               </div>
-            ) : currentMode === "debug-code" && currentQuestion.type === "debug-code" ? (
+            ) : currentMode === "debug-code" && debugQuestion ? (
               <>
-                <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{currentQuestion.problemStatement}</h2>
-                <div className="mt-6"><CodeBlock code={currentQuestion.codeSnippet} language={currentQuestion.language} /></div>
+                <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{debugQuestion.problemStatement}</h2>
+                <div className="mt-6"><CodeBlock code={debugQuestion.codeSnippet} language={debugQuestion.language} /></div>
                 <AnswerBox value={answer} onChange={setAnswer} onSubmit={() => submitAnswer(answer)} label="Explain the bug and the fix" buttonLabel="Check Explanation" disabled={Boolean(feedback)} />
               </>
             ) : (
@@ -757,8 +720,8 @@ export function SmartStudy({
                 <p className="font-mono text-sm font-semibold">{getAttemptScore(feedback.attempt)} / 100</p>
               </div>
               {textQuestion && currentMode !== "multiple-choice" && currentMode !== "flashcard" && <p className="mt-3 text-sm leading-6">Expected answer: {textQuestion.expectedAnswer}</p>}
-              {currentQuestion.type === "multiple-choice" && <p className="mt-3 text-sm leading-6">{currentQuestion.explanation ?? `Correct answer: ${currentQuestion.correctAnswer}`}</p>}
-              {currentQuestion.type === "debug-code" && currentQuestion.correctedCode && <div className="mt-4"><CodeBlock code={currentQuestion.correctedCode} language={currentQuestion.language} label="Correction" /></div>}
+              {multipleChoiceQuestion && <p className="mt-3 text-sm leading-6">{multipleChoiceQuestion.explanation ?? `Correct answer: ${multipleChoiceQuestion.correctAnswer}`}</p>}
+              {debugQuestion?.correctedCode && <div className="mt-4"><CodeBlock code={debugQuestion.correctedCode} language={debugQuestion.language} label="Correction" /></div>}
               <button type="button" onClick={nextQuestion} className="mt-5 min-h-11 w-full rounded-xl bg-[#0f766e] px-5 py-3 font-semibold text-white transition hover:bg-[#0b625b] active:translate-y-px dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]">Next Question</button>
             </div>
           )}

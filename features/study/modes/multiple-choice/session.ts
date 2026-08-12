@@ -35,9 +35,9 @@ export function prepareMultipleChoiceSession(
   return shuffle(questions, random).map((question) => {
     const answerTexts = [question.correctAnswer, ...question.distractors];
 
-    if (answerTexts.length !== 4) {
+    if (answerTexts.length < 2) {
       throw new Error(
-        `Multiple choice question ${question.id} must have exactly 4 answers`,
+        `Multiple choice question ${question.id} must have at least 2 answers`,
       );
     }
 

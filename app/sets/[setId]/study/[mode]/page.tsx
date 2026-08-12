@@ -8,23 +8,44 @@ import { RapidRecallStudy } from "@/features/study/modes/rapid-recall/RapidRecal
 import { SmartStudy } from "@/features/study/modes/smart-study/SmartStudy";
 import { WriteStudy } from "@/features/study/modes/write/WriteStudy";
 import { getStudySetById } from "@/lib/study/repository";
+import { canStudyItemInMode, toDebugCodeQuestion, toFlashcardQuestion, toMultipleChoiceQuestion, toWriteQuestion } from "@/features/study/domain/eligibility";
 
 export const dynamic = "force-dynamic";
 
 const supportedModes = ["flashcards", "multiple-choice", "write", "rapid-recall", "smart-study", "debug-code"] as const;
 type SupportedMode = (typeof supportedModes)[number];
 
-export default async function StudyModePage({ params }: { params: Promise<{ setId: string; mode: string }> }) {
+export default async function StudyModePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ setId: string; mode: string }>;
+  searchParams?: Promise<{ items?: string | string[] }>;
+}) {
   const { setId, mode } = await params;
   if (!supportedModes.includes(mode as SupportedMode)) notFound();
 
   const studySet = await getStudySetById(setId);
   if (!studySet) notFound();
 
-  const flashcards = studySet.questions.filter((question) => question.type === "flashcard");
-  const multipleChoice = studySet.questions.filter((question) => question.type === "multiple-choice");
-  const writeQuestions = studySet.questions.filter((question) => question.type === "write");
-  const debugQuestions = studySet.questions.filter((question) => question.type === "debug-code");
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const itemQuery = Array.isArray(resolvedSearchParams.items)
+    ? resolvedSearchParams.items[0]
+    : resolvedSearchParams.items;
+  const selectedIds = itemQuery
+    ? new Set(itemQuery.split(",").map((id) => id.trim()).filter(Boolean))
+    : null;
+  const sessionQuestions = selectedIds
+    ? studySet.questions.filter((question) => selectedIds.has(question.id))
+    : studySet.questions;
+
+  const flashcards = sessionQuestions.filter((question) => canStudyItemInMode(question, "flashcard")).map(toFlashcardQuestion);
+  const multipleChoice = sessionQuestions.flatMap((question) => {
+    const adapted = toMultipleChoiceQuestion(question, sessionQuestions);
+    return adapted && canStudyItemInMode(question, "multiple-choice", sessionQuestions) ? [adapted] : [];
+  });
+  const writeQuestions = sessionQuestions.filter((question) => canStudyItemInMode(question, "write")).map(toWriteQuestion);
+  const debugQuestions = sessionQuestions.filter((question) => canStudyItemInMode(question, "debug-code")).map(toDebugCodeQuestion);
 
   const modeLabel = mode === "flashcards" ? "Flashcards" : mode === "multiple-choice" ? "Multiple Choice" : mode === "rapid-recall" ? "Rapid Recall" : mode === "smart-study" ? "Smart Study" : mode === "debug-code" ? "Debug / Code" : "Write";
   let studyContent;
@@ -42,7 +63,7 @@ export default async function StudyModePage({ params }: { params: Promise<{ setI
       studyContent = <RapidRecallStudy questions={writeQuestions} title={studySet.title} />;
       break;
     case "smart-study":
-      studyContent = <SmartStudy questions={studySet.questions} title={studySet.title} />;
+      studyContent = <SmartStudy questions={sessionQuestions} title={studySet.title} />;
       break;
     case "debug-code":
       studyContent = <DebugCodeStudy questions={debugQuestions} title={studySet.title} />;

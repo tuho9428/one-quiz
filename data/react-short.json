@@ -1,0 +1,571 @@
+[
+  {
+    "type": "flashcard",
+    "question": "What is React?",
+    "answer": "React is a JavaScript library for building user interfaces with reusable components.",
+    "explanation": "Main idea: reusable components + declarative UI.",
+    "tags": [
+      "React",
+      "Core"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why do you use React?",
+    "answer": "React helps organize large UIs into reusable components. It also makes dynamic UI easier to manage.",
+    "explanation": "Think: reusable components + dynamic UI.",
+    "tags": [
+      "React",
+      "Core"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between React and Angular?",
+    "answer": "React is mainly a UI library. Angular is a more complete framework with more features built in.",
+    "explanation": "React = flexible library. Angular = full framework.",
+    "tags": [
+      "React",
+      "Angular",
+      "Core"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Functional components vs class components?",
+    "answer": "Functional components are functions and use hooks. Class components use classes, lifecycle methods, and this.",
+    "explanation": "Modern React mainly uses functional components.",
+    "tags": [
+      "React",
+      "Components"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is JSX?",
+    "answer": "JSX lets us write HTML-like markup inside JavaScript or TypeScript. It is converted into JavaScript for React.",
+    "explanation": "JSX makes component UI easier to read and write.",
+    "tags": [
+      "React",
+      "JSX"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Is JSX required to use React?",
+    "answer": "No. React can work without JSX, but JSX usually makes the UI code easier to read and write.",
+    "tags": [
+      "React",
+      "JSX"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are props?",
+    "answer": "Props are values passed from a parent to a child component. The child should treat them as read-only.",
+    "explanation": "Think: parent → child.",
+    "tags": [
+      "React",
+      "Props"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is state?",
+    "answer": "State is data owned by a component that can change. Updating state can cause the UI to render again.",
+    "explanation": "Think: component-owned + changeable.",
+    "tags": [
+      "React",
+      "State"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between props and state?",
+    "answer": "Props come from the parent and are read-only. State is managed by the component and can change.",
+    "explanation": "Props = passed. State = owned.",
+    "tags": [
+      "React",
+      "Props",
+      "State"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is one-way data flow?",
+    "answer": "Data normally moves from parent to child through props. A child can call a callback to tell the parent about a change.",
+    "explanation": "Think: data down, callbacks up.",
+    "tags": [
+      "React",
+      "Data Flow"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What causes a React component to render?",
+    "answer": "A component can render when its state changes, its parent renders, or a Context value it uses changes.",
+    "explanation": "Keywords: state, parent, Context.",
+    "tags": [
+      "React",
+      "Rendering",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why shouldn't you mutate React state directly?",
+    "answer": "Direct mutation can keep the same object or array reference. Creating a new value makes state updates more predictable.",
+    "explanation": "Think: new reference.",
+    "tags": [
+      "React",
+      "State",
+      "Immutability",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you update state using the previous state?",
+    "answer": "Use the functional setter form, like setCount(c => c + 1). This uses the latest previous state.",
+    "explanation": "Rule: previous state → function.",
+    "tags": [
+      "React",
+      "State"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What happens to children when a parent renders?",
+    "answer": "By default, React also calls the child components during rendering. Memoization can sometimes skip unnecessary child renders.",
+    "tags": [
+      "React",
+      "Rendering"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does useState do?",
+    "answer": "useState stores local component state. It gives us the current value and a setter function.",
+    "explanation": "UI needs to change → use state.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useState",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does useRef do?",
+    "answer": "useRef stores a value between renders. Changing ref.current does not cause a rerender.",
+    "explanation": "Common uses: DOM reference, timer ID, previous value.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useRef",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "When do you use useState vs useRef?",
+    "answer": "Use state when the UI should update. Use a ref when you only need to keep a value without rerendering.",
+    "explanation": "State = UI. Ref = remember.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useState",
+      "useRef"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does useReducer do?",
+    "answer": "useReducer manages state through actions and a reducer function. It is useful for more complex related state.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useReducer"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "When would you use useReducer instead of useState?",
+    "answer": "I use useReducer when several state changes are related or the update logic is becoming complex.",
+    "explanation": "Simple state → useState. Complex related state → useReducer.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useReducer",
+      "useState"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is useEffect used for?",
+    "answer": "useEffect is for side effects or syncing with things outside React. It uses dependencies and can return cleanup.",
+    "explanation": "Think: external → dependencies → cleanup.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useEffect",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does the useEffect dependency array do?",
+    "answer": "Dependencies tell React when the effect should run again. If a dependency changes, the effect runs again.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useEffect",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does an empty useEffect dependency array mean?",
+    "answer": "It means the effect has no reactive dependencies, so it normally runs after the initial mount. Development Strict Mode may run setup and cleanup again.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useEffect"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "When do you need useEffect cleanup?",
+    "answer": "Use cleanup when the effect starts something that should stop later, such as a timer, listener, subscription, or request.",
+    "explanation": "Timer, listener, subscription, request.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useEffect",
+      "Cleanup",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What can wrong useEffect dependencies cause?",
+    "answer": "Missing dependencies can cause stale data. Wrong dependencies can also cause extra effect runs or update loops.",
+    "tags": [
+      "React",
+      "Hooks",
+      "useEffect",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is wrong with this effect?",
+    "answer": "It can create an infinite update loop because the effect changes count while also depending on count.",
+    "explanation": "count changes → effect runs → setCount changes count → effect runs again.",
+    "codeSnippet": "const [count, setCount] = useState(0);\n\nuseEffect(() => {\n  setCount(count + 1);\n}, [count]);",
+    "language": "jsx",
+    "tags": [
+      "React",
+      "useEffect",
+      "Debugging",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is React Context?",
+    "answer": "Context shares data across a component tree without passing the same prop through every level.",
+    "explanation": "Useful for shared frontend data.",
+    "tags": [
+      "React",
+      "Context"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is prop drilling?",
+    "answer": "Prop drilling means passing data through intermediate components that do not need the data themselves.",
+    "tags": [
+      "React",
+      "Props",
+      "Context"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Is prop drilling always bad?",
+    "answer": "No. For a small component tree, normal props can be simpler than adding Context.",
+    "tags": [
+      "React",
+      "Props",
+      "Context"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between Context and useReducer?",
+    "answer": "useReducer manages state changes. Context shares a value through the component tree.",
+    "explanation": "They can also be used together.",
+    "tags": [
+      "React",
+      "Context",
+      "useReducer"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between Context and React Query?",
+    "answer": "Context is usually for shared client-side state. React Query is for server or API data, caching, and request state.",
+    "explanation": "Context = client. Query = server.",
+    "tags": [
+      "React",
+      "Context",
+      "React Query",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is reconciliation?",
+    "answer": "Reconciliation is how React compares the previous UI with the new UI and decides what needs to change.",
+    "explanation": "Think: compare old and new.",
+    "tags": [
+      "React",
+      "Rendering",
+      "Reconciliation",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why are React keys important?",
+    "answer": "Keys give list items stable identity. They help React know which items were added, removed, moved, or kept.",
+    "explanation": "Key = identity.",
+    "tags": [
+      "React",
+      "Keys",
+      "Rendering",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why can an array index be a bad React key?",
+    "answer": "If items move, are added, or are deleted, the same index can point to a different item. This can cause wrong component state.",
+    "tags": [
+      "React",
+      "Keys",
+      "Rendering"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is component identity in React?",
+    "answer": "React uses component type, position, and keys to decide if it is the same component between renders. The same identity can preserve state.",
+    "tags": [
+      "React",
+      "Rendering",
+      "Identity"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Controlled vs uncontrolled input?",
+    "answer": "A controlled input uses React state as the source of truth. An uncontrolled input keeps its value in the DOM.",
+    "explanation": "Controlled = React owns value.",
+    "tags": [
+      "React",
+      "Forms"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you handle form validation?",
+    "answer": "I define clear validation rules and show useful errors near the fields. The server must also validate untrusted input.",
+    "tags": [
+      "React",
+      "Forms",
+      "Validation"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "When can form validation run?",
+    "answer": "Validation can run on change, blur, submit, or a combination, depending on the user experience.",
+    "tags": [
+      "React",
+      "Forms",
+      "Validation"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does React.memo do?",
+    "answer": "React.memo can skip a child render when its props are shallowly equal. I use it only when it solves a real render problem.",
+    "explanation": "React.memo = component.",
+    "tags": [
+      "React",
+      "Performance",
+      "React.memo",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between useMemo and useCallback?",
+    "answer": "useMemo remembers a calculated value. useCallback remembers a function reference.",
+    "explanation": "useMemo = value. useCallback = function.",
+    "tags": [
+      "React",
+      "Performance",
+      "useMemo",
+      "useCallback",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you reduce unnecessary React renders?",
+    "answer": "First, find the real render problem. Then consider moving state, splitting components, React.memo, useMemo, or useCallback.",
+    "explanation": "Measure first, then optimize.",
+    "tags": [
+      "React",
+      "Performance"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a custom hook?",
+    "answer": "A custom hook is a function that uses React hooks to reuse stateful logic. Its name normally starts with use.",
+    "explanation": "A custom hook shares logic, not UI.",
+    "tags": [
+      "React",
+      "Hooks",
+      "Custom Hooks"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is an Error Boundary?",
+    "answer": "An Error Boundary catches some rendering errors in child components and shows fallback UI instead of crashing that part of the app.",
+    "tags": [
+      "React",
+      "Error Handling"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "Does an Error Boundary catch every error?",
+    "answer": "No. It does not automatically catch every error, such as errors in event handlers or arbitrary async callbacks.",
+    "tags": [
+      "React",
+      "Error Handling"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a protected route?",
+    "answer": "A protected route checks whether a user can access a page and may redirect them. The backend must still enforce authorization.",
+    "explanation": "Frontend protection = UX. Backend = real security.",
+    "tags": [
+      "React",
+      "Routing",
+      "Security"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are code splitting and lazy loading?",
+    "answer": "Code splitting breaks the app into smaller bundles. Lazy loading loads code only when it is needed.",
+    "explanation": "Goal: improve initial loading.",
+    "tags": [
+      "React",
+      "Performance",
+      "Lazy Loading"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does Suspense do with a lazy component?",
+    "answer": "Suspense can show fallback UI while a lazy component is loading.",
+    "tags": [
+      "React",
+      "Suspense",
+      "Lazy Loading"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you handle API UI states?",
+    "answer": "I handle loading, error, empty, and success as separate UI states. I also think about stale requests when needed.",
+    "explanation": "Loading → error/empty → success.",
+    "tags": [
+      "React",
+      "API",
+      "React Query",
+      "High Priority"
+    ]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is wrong with this state update?",
+    "answer": "It mutates the state object directly and passes back the same reference. Create a new object instead.",
+    "codeSnippet": "const [user, setUser] = useState({\n  name: \"Tu\",\n  age: 30\n});\n\nfunction birthday() {\n  user.age++;\n  setUser(user);\n}",
+    "language": "jsx",
+    "tags": [
+      "React",
+      "State",
+      "Debugging",
+      "Immutability"
+    ]
+  },
+  {
+    "type": "debug_code",
+    "question": "Why might this not increment count three times?",
+    "answer": "All three updates use the count value captured by the same render. Use functional updates when each update depends on the previous one.",
+    "codeSnippet": "function incrementThreeTimes() {\n  setCount(count + 1);\n  setCount(count + 1);\n  setCount(count + 1);\n}",
+    "language": "jsx",
+    "tags": [
+      "React",
+      "State",
+      "Debugging"
+    ]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is wrong with this effect?",
+    "answer": "The effect uses userId but does not include it as a dependency. If userId changes, the effect can use stale behavior.",
+    "codeSnippet": "useEffect(() => {\n  fetchUser(userId);\n}, []);",
+    "language": "jsx",
+    "tags": [
+      "React",
+      "useEffect",
+      "Debugging",
+      "Dependencies"
+    ]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is risky about this key?",
+    "answer": "The index can point to a different item after insert, delete, or reorder. Use a stable ID when possible.",
+    "codeSnippet": "items.map((item, index) => (\n  <Item key={index} item={item} />\n));",
+    "language": "jsx",
+    "tags": [
+      "React",
+      "Keys",
+      "Debugging"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you stop an old API response from replacing a newer one?",
+    "answer": "Cancel the old request or ignore stale results. AbortController or a data-fetching library can help keep only the latest relevant result.",
+    "explanation": "Problem: request A finishes after newer request B.",
+    "tags": [
+      "React",
+      "API",
+      "Race Condition",
+      "Request Cancellation"
+    ]
+  }
+]

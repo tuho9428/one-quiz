@@ -4,7 +4,7 @@ import { getStudyProgress, getStudySets, getDueItems } from "@/lib/study/reposit
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function DashboardPage() {
   const studySets = await getStudySets();
   const summaries = await loadDashboardStudySets(studySets, getStudyProgress, getDueItems);
   return <StudyDashboard studySets={summaries} />;

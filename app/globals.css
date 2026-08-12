@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f3f6f5;
+  --foreground: #16322e;
 }
 
 @theme inline {
@@ -14,13 +14,159 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #101817;
+    --foreground: #edf5f1;
   }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.flashcard-stage {
+  perspective: 1200px;
+}
+
+.flashcard-card {
+  position: relative;
+  min-height: clamp(20rem, 52vw, 28rem);
+  transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flashcard-card[data-revealed="true"] {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  border: 1px solid #d5e2df;
+  border-radius: 1.75rem;
+  background: #fbfdfc;
+  padding: 2rem 1.25rem;
+  backface-visibility: hidden;
+  box-shadow: 0 18px 60px rgb(27 64 57 / 8%);
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+@media (min-width: 640px) {
+  .flashcard-face {
+    padding: 3rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .flashcard-face {
+    border-color: #2d4440;
+    background: #182320;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-card {
+    transform: none;
+    transition: none;
+  }
+
+  .flashcard-card[data-revealed="true"] {
+    transform: none;
+  }
+
+  .flashcard-face {
+    transform: none;
+  }
+
+  .flashcard-card:not([data-revealed="true"]) .flashcard-back,
+  .flashcard-card[data-revealed="true"] .flashcard-front {
+    visibility: hidden;
+  }
+}
+
+.code-block .hljs-comment,
+.code-block .hljs-quote {
+  color: #7ea89a;
+}
+
+.code-block .hljs-keyword,
+.code-block .hljs-selector-tag,
+.code-block .hljs-literal,
+.code-block .hljs-section,
+.code-block .hljs-link {
+  color: #86d7c0;
+}
+
+.code-block .hljs-string,
+.code-block .hljs-attr,
+.code-block .hljs-template-tag,
+.code-block .hljs-template-variable {
+  color: #d5c98a;
+}
+
+.code-block .hljs-number,
+.code-block .hljs-symbol,
+.code-block .hljs-bullet,
+.code-block .hljs-variable,
+.code-block .hljs-type {
+  color: #9fc7ff;
+}
+
+.code-block .hljs-title,
+.code-block .hljs-title.function_,
+.code-block .hljs-title.class_,
+.code-block .hljs-built_in {
+  color: #a9d9cc;
+}
+
+.code-block .hljs-meta {
+  color: #c4a8df;
+}
+
+.editor-input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid #c8d9d5;
+  border-radius: 0.875rem;
+  background: #fbfdfc;
+  padding: 0.75rem 1rem;
+  color: #16322e;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.editor-input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgb(15 118 110 / 16%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .editor-input {
+    border-color: #3b5a54;
+    background: #1e2d2a;
+    color: #edf5f1;
+  }
+
+  .editor-input:focus {
+    border-color: #5eead4;
+    box-shadow: 0 0 0 3px rgb(94 234 212 / 16%);
+  }
 }

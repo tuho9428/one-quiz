@@ -71,6 +71,10 @@ function nonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function requiresCodeContext(question: string): boolean {
+  return /\b(this effect|this key|this code|this component|this interval|this closure|what happens here|what is wrong|why does this return|fix (?:this|the)|predict[^\n]*output|code snippet|bug)\b/i.test(question);
+}
+
 function cleanTags(value: unknown): { tags: string[]; error?: string } {
   if (value === undefined) return { tags: [] };
   if (!Array.isArray(value) || value.some((tag) => typeof tag !== "string")) {
@@ -133,6 +137,9 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
   );
   if (type === "debug-code" && !codeSnippet?.trim() && !hasValidExplicitChoices) {
     errors.push("debug_code requires codeSnippet");
+  }
+  if (nonEmptyString(value.question) && requiresCodeContext(value.question) && !codeSnippet?.trim() && !(type === "debug-code" && hasValidExplicitChoices)) {
+    errors.push("this question appears to require codeSnippet");
   }
 
   if (value.task !== undefined && (typeof value.task !== "string" || ![

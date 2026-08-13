@@ -15,7 +15,6 @@ import {
   getStudyItemsPage,
   getStudyItemsPageCount,
   getStudyItemsPageRange,
-  getStudyItemsPageWindow,
   getSelectedStudyQuestions,
   selectVisibleStudyQuestions,
   toggleStudyQuestionSelection,
@@ -29,6 +28,7 @@ import {
   FlashcardStudy,
 } from "../modes/flashcards/FlashcardStudy";
 import { ExportStudySetButton } from "../import/ExportStudySetButton";
+import { Pagination } from "../components/Pagination";
 
 export interface StudySetOverviewProps {
   setId: string;
@@ -66,7 +66,6 @@ export function StudySetOverview({
   const pageCount = getStudyItemsPageCount(filteredQuestions.length);
   const renderedQuestions = getStudyItemsPage(filteredQuestions, currentPage);
   const pageRange = getStudyItemsPageRange(filteredQuestions.length, currentPage);
-  const mobilePageWindow = getStudyItemsPageWindow(currentPage, pageCount);
   const selectedQuestions = useMemo(
     () => getSelectedStudyQuestions(questions, selectedItemIds),
     [questions, selectedItemIds],
@@ -154,9 +153,14 @@ export function StudySetOverview({
             </p>
           </div>
           <div className="flex flex-col items-start gap-4 text-sm font-semibold sm:items-end">
-            <Link href="/dashboard" className="text-[#0f766e] hover:underline dark:text-[#5eead4]">
-              Progress
-            </Link>
+            <div className="flex flex-wrap gap-3 sm:justify-end">
+              <Link href={`/sets/${setId}/edit`} className="min-h-10 rounded-xl border border-[#b9cfca] px-4 py-2 text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">
+                Edit set
+              </Link>
+              <Link href="/dashboard" className="min-h-10 rounded-xl border border-[#b9cfca] px-4 py-2 text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">
+                Progress
+              </Link>
+            </div>
             <ExportStudySetButton studySetId={setId} />
           </div>
         </header>
@@ -263,16 +267,7 @@ export function StudySetOverview({
           )}
           <div className="mt-4 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[#66807a] dark:text-[#a8bdb7]">Showing {pageRange.start}-{pageRange.end} of {filteredQuestions.length}{search.trim() ? " matching" : ""}</p>
-            {filteredQuestions.length > 0 && <nav aria-label="Study item pages" className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage <= 1} className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 font-semibold text-[#24564e] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Previous</button>
-              <div className="flex items-center gap-1 sm:hidden" aria-label={`Page ${currentPage} of ${pageCount}`}>
-                {mobilePageWindow.map((page) => <PageButton key={page} page={page} currentPage={currentPage} onSelect={setCurrentPage} />)}
-              </div>
-              <div className="hidden flex-wrap items-center gap-1 sm:flex" aria-label={`Page ${currentPage} of ${pageCount}`}>
-                {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => <button key={page} type="button" onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined} className={`min-h-10 min-w-10 rounded-xl px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] ${currentPage === page ? "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#10221f]" : "border border-[#b9cfca] text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"}`}>{page}</button>)}
-              </div>
-              <button type="button" onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))} disabled={currentPage >= pageCount} className="min-h-10 rounded-xl border border-[#b9cfca] px-3 py-2 font-semibold text-[#24564e] hover:bg-[#e8f1ee] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Next</button>
-            </nav>}
+            {filteredQuestions.length > 0 && <Pagination currentPage={currentPage} totalPages={pageCount} onPageChange={setCurrentPage} ariaLabel="Study item pages" />}
           </div>
           </div>}
         </section>
@@ -371,28 +366,6 @@ function SummaryMetric({ label, value, tone }: { label: string; value: number; t
       <p className="text-xs text-[#66807a] dark:text-[#94aea7] sm:text-sm">{label}</p>
       <p className={`mt-2 text-3xl font-semibold tracking-tight ${toneClass}`}>{value}</p>
     </div>
-  );
-}
-
-function PageButton({
-  page,
-  currentPage,
-  onSelect,
-}: {
-  page: number;
-  currentPage: number;
-  onSelect: (page: number) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(page)}
-      aria-current={currentPage === page ? "page" : undefined}
-      aria-label={`Go to page ${page}`}
-      className={`min-h-10 min-w-10 rounded-xl px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] ${currentPage === page ? "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#10221f]" : "border border-[#b9cfca] text-[#24564e] hover:bg-[#e8f1ee] dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"}`}
-    >
-      {page}
-    </button>
   );
 }
 

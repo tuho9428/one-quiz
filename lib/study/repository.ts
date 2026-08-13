@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { PoolClient } from "pg";
 
 import type {
   AttemptOutcome,
@@ -26,6 +27,8 @@ export interface ImportSummary {
   tagsCreatedOrReused: number;
   setId: string;
 }
+
+export type StudyItemMutationInput = NormalizedPortableStudyItem;
 
 export interface StudyProgressUpdate {
   studyItemId: string;
@@ -299,6 +302,35 @@ export async function ensureStudySet(input: EnsureStudySetInput): Promise<StudyS
   return set;
 }
 
+function assertSetMetadata(input: { title: string; description?: string }): { title: string; description: string } {
+  const title = input.title.trim();
+  if (!title) throw new Error("A study-set title is required.");
+  if (title.length > 200) throw new Error("Study-set titles must be 200 characters or fewer.");
+  const description = (input.description ?? "").trim();
+  if (description.length > 2000) throw new Error("Study-set descriptions must be 2,000 characters or fewer.");
+  return { title, description };
+}
+
+export async function updateStudySet(
+  studySetId: string,
+  input: { title: string; description?: string },
+  ownerId?: string | null,
+): Promise<StudySetRecord> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const set = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!set) throw new Error("Study set not found or not accessible");
+  const metadata = assertSetMetadata(input);
+  await pool.query(
+    `update study_sets
+     set title = $1, description = $2, updated_at = now()
+     where id = $3 and ${resolvedOwnerId ? "owner_id = $4" : "owner_id is null"}`,
+    resolvedOwnerId ? [metadata.title, metadata.description, studySetId, resolvedOwnerId] : [metadata.title, metadata.description, studySetId],
+  );
+  const updated = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!updated) throw new Error("Study set could not be loaded after saving.");
+  return updated;
+}
+
 export function sourceKeyForItem(item: NormalizedPortableStudyItem): string {
   const canonical = JSON.stringify({
     type: item.type,
@@ -392,6 +424,155 @@ export async function importStudyItems(
   }
 
   return { imported: items.length, tagsCreatedOrReused, setId: studySetId };
+}
+
+function idFor(prefix: string, suffix = ""): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${suffix}`;
+}
+
+async function replaceItemRelations(client: PoolClient, itemId: string, item: StudyItemMutationInput): Promise<number> {
+  await client.query("delete from study_item_options where study_item_id = $1", [itemId]);
+  for (const [position, optionText] of (item.choices ?? []).entries()) {
+    await client.query(
+      `insert into study_item_options (id, study_item_id, option_text, position, is_correct)
+       values ($1, $2, $3, $4, $5)`,
+      [idFor("option", `${itemId}-${position}`), itemId, optionText, position, optionText === item.answer],
+    );
+  }
+
+  await client.query("delete from study_item_tags where study_item_id = $1", [itemId]);
+  let tagsCreatedOrReused = 0;
+  for (const tagName of item.tags) {
+    const normalizedName = tagName.trim().toLocaleLowerCase();
+    if (!normalizedName) continue;
+    const tagResult = await client.query<{ id: string }>(
+      `insert into tags (id, name, normalized_name) values ($1, $2, $3)
+       on conflict (normalized_name) do update set name = tags.name
+       returning id`,
+      [idFor("tag", normalizedName), tagName.trim(), normalizedName],
+    );
+    tagsCreatedOrReused += 1;
+    await client.query(
+      "insert into study_item_tags (study_item_id, tag_id) values ($1, $2) on conflict do nothing",
+      [itemId, tagResult.rows[0].id],
+    );
+  }
+  return tagsCreatedOrReused;
+}
+
+export async function createStudyItem(
+  studySetId: string,
+  item: StudyItemMutationInput,
+  ownerId?: string | null,
+): Promise<string> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const set = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!set) throw new Error("Study set not found or not accessible");
+  const client = await pool.connect();
+  const itemId = idFor("item");
+  try {
+    await client.query("begin");
+    const positionResult = await client.query<{ next_position: number }>(
+      "select coalesce(max(position) + 1, 0) as next_position from study_items where study_set_id = $1",
+      [studySetId],
+    );
+    await client.query(
+      `insert into study_items (id, study_set_id, type, task, question, answer, explanation, code_snippet, language, position, source_key)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [itemId, studySetId, item.type, item.task ?? "explain-behavior", item.question, item.answer, item.explanation ?? null, item.codeSnippet ?? null, item.language ?? null, positionResult.rows[0].next_position, sourceKeyForItem(item)],
+    );
+    await replaceItemRelations(client, itemId, item);
+    await client.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
+    await client.query("commit");
+    return itemId;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateStudyItem(
+  studySetId: string,
+  itemId: string,
+  item: StudyItemMutationInput,
+  ownerId?: string | null,
+): Promise<void> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const set = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!set) throw new Error("Study set not found or not accessible");
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const existing = await client.query<{ id: string }>(
+      "select id from study_items where id = $1 and study_set_id = $2 for update",
+      [itemId, studySetId],
+    );
+    if (!existing.rows[0]) throw new Error("Study item not found or not accessible");
+    await client.query(
+      `update study_items
+       set type = $1, task = $2, question = $3, answer = $4, explanation = $5,
+           code_snippet = $6, language = $7, source_key = $8, updated_at = now()
+       where id = $9 and study_set_id = $10`,
+      [item.type, item.task ?? "explain-behavior", item.question, item.answer, item.explanation ?? null, item.codeSnippet ?? null, item.language ?? null, sourceKeyForItem(item), itemId, studySetId],
+    );
+    await replaceItemRelations(client, itemId, item);
+    await client.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteStudyItem(
+  studySetId: string,
+  itemId: string,
+  ownerId?: string | null,
+): Promise<void> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const set = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!set) throw new Error("Study set not found or not accessible");
+  const result = await pool.query("delete from study_items where id = $1 and study_set_id = $2", [itemId, studySetId]);
+  if ((result.rowCount ?? 0) === 0) throw new Error("Study item not found or not accessible");
+  await pool.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
+}
+
+export async function moveStudyItem(
+  studySetId: string,
+  itemId: string,
+  direction: "up" | "down",
+  ownerId?: string | null,
+): Promise<void> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const set = await getStudySetById(studySetId, resolvedOwnerId);
+  if (!set) throw new Error("Study set not found or not accessible");
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const rows = await client.query<{ id: string; position: number }>(
+      "select id, position from study_items where study_set_id = $1 order by position, id for update",
+      [studySetId],
+    );
+    const index = rows.rows.findIndex((row) => row.id === itemId);
+    const neighborIndex = direction === "up" ? index - 1 : index + 1;
+    if (index >= 0 && neighborIndex >= 0 && neighborIndex < rows.rows.length) {
+      const current = rows.rows[index];
+      const neighbor = rows.rows[neighborIndex];
+      await client.query("update study_items set position = $1, updated_at = now() where id = $2", [neighbor.position, current.id]);
+      await client.query("update study_items set position = $1, updated_at = now() where id = $2", [current.position, neighbor.id]);
+      await client.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
+    }
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function exportStudySet(studySetId: string): Promise<PortableStudyItem[]> {

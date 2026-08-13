@@ -106,4 +106,15 @@ describe("portable study JSON", () => {
       choices: expect.arrayContaining(["They are interchangeable for every element"]),
     }));
   });
+
+  it("rejects code-context questions that would otherwise lose their snippet", () => {
+    const result = parsePortableStudyJson(JSON.stringify([{
+      type: "write",
+      question: "What is wrong with this code?",
+      answer: "The dependency causes a loop.",
+    }]));
+
+    expect(result.validItems).toHaveLength(0);
+    expect(result.errors).toEqual([{ index: 0, message: "this question appears to require codeSnippet" }]);
+  });
 });

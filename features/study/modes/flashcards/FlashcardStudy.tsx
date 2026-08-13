@@ -11,6 +11,7 @@ import {
   createStatsForQuestions,
   type StatsByQuestion,
 } from "../../session/recording";
+import { CodeBlock } from "../debug-code/CodeBlock";
 export type { StatsByQuestion } from "../../session/recording";
 
 const ratingOrder: FlashcardRating[] = ["again", "hard", "good", "easy"];
@@ -366,6 +367,11 @@ export function FlashcardStudy({
                 <h2 id="flashcard-prompt" className="mt-5 max-w-2xl text-center text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
                   {currentCard.prompt}
                 </h2>
+                {currentCard.codeSnippet && (
+                  <div className="mt-7 w-full max-w-3xl text-left">
+                    <CodeBlock code={currentCard.codeSnippet} language={currentCard.language ?? "text"} />
+                  </div>
+                )}
                 <p className="mt-6 text-sm text-[#66807a] dark:text-[#94aea7]">
                   Try to retrieve it before you reveal the answer.
                 </p>

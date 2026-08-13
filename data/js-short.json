@@ -1,0 +1,305 @@
+[
+  {
+    "type": "flashcard",
+    "question": "What is the difference between var, let, and const?",
+    "answer": "var is function-scoped. let and const are block-scoped. let can be reassigned, while const cannot be reassigned.",
+    "explanation": "Use const by default and let when reassignment is needed.",
+    "tags": ["JavaScript", "Variables", "Scope", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Can you modify an object declared with const?",
+    "answer": "Yes. const prevents reassignment of the variable, but the object's properties can still change.",
+    "explanation": "const does not make an object immutable.",
+    "tags": ["JavaScript", "const", "Objects"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is hoisting?",
+    "answer": "Hoisting describes how JavaScript processes declarations before running the code. var starts as undefined, while let and const cannot be used before initialization.",
+    "explanation": "Function declarations can usually be called before their declaration.",
+    "tags": ["JavaScript", "Hoisting", "Scope", "High Priority"]
+  },
+  {
+    "type": "debug_code",
+    "question": "What does this code print?",
+    "answer": "It prints undefined because var is hoisted and initialized with undefined before the assignment.",
+    "codeSnippet": "console.log(a);\nvar a = 10;",
+    "language": "javascript",
+    "tags": ["JavaScript", "Hoisting", "Debugging"]
+  },
+  {
+    "type": "debug_code",
+    "question": "What happens when this code runs?",
+    "answer": "It throws a ReferenceError because a is in the Temporal Dead Zone before it is initialized.",
+    "codeSnippet": "console.log(a);\nlet a = 10;",
+    "language": "javascript",
+    "tags": ["JavaScript", "TDZ", "Hoisting", "Debugging"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the Temporal Dead Zone?",
+    "answer": "The Temporal Dead Zone is the time before a let or const variable is initialized. Accessing it during this time throws a ReferenceError.",
+    "explanation": "Think: declared by the scope, but not usable yet.",
+    "tags": ["JavaScript", "TDZ", "Scope"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are primitive and reference types?",
+    "answer": "Primitives are simple values like string, number, boolean, null, and undefined. Objects, arrays, and functions are reference types.",
+    "explanation": "Reference types can share the same object in memory.",
+    "tags": ["JavaScript", "Types"]
+  },
+  {
+    "type": "debug_code",
+    "question": "Why does changing b also change a here?",
+    "answer": "a and b point to the same object. Changing the object through b is also visible through a.",
+    "codeSnippet": "const a = { count: 1 };\nconst b = a;\n\nb.count = 5;\nconsole.log(a.count);",
+    "language": "javascript",
+    "tags": ["JavaScript", "Objects", "References", "Debugging"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why is {} === {} false?",
+    "answer": "They are two different object references. JavaScript compares object identity, not the contents.",
+    "tags": ["JavaScript", "Objects", "Equality"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between == and ===?",
+    "answer": "== allows type coercion before comparison. === compares without that automatic type conversion.",
+    "explanation": "I normally use === because it is more predictable.",
+    "tags": ["JavaScript", "Equality"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are truthy and falsy values?",
+    "answer": "Falsy values include false, 0, an empty string, null, undefined, and NaN. Most other values are truthy.",
+    "tags": ["JavaScript", "Types", "Truthy Falsy"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Are empty arrays and empty objects truthy?",
+    "answer": "Yes. Both [] and {} are truthy in JavaScript.",
+    "tags": ["JavaScript", "Truthy Falsy"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a closure?",
+    "answer": "A closure happens when a function keeps access to variables from its outer scope even after the outer function has finished.",
+    "explanation": "Think: inner function remembers outer variables.",
+    "tags": ["JavaScript", "Closures", "Functions", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Where do you see closures in React?",
+    "answer": "React event handlers and hooks often use closures because callbacks can capture state or props from the render where they were created.",
+    "tags": ["JavaScript", "Closures", "React"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is lexical scope?",
+    "answer": "Lexical scope means a function can access variables based on where the function is defined in the source code.",
+    "explanation": "Inner functions can access their outer scopes.",
+    "tags": ["JavaScript", "Scope", "Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are first-class functions?",
+    "answer": "JavaScript functions are values. They can be stored in variables, passed as arguments, and returned from other functions.",
+    "tags": ["JavaScript", "Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a higher-order function?",
+    "answer": "A higher-order function takes another function as an argument, returns a function, or both.",
+    "explanation": "Examples: map, filter, and reduce.",
+    "tags": ["JavaScript", "Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does map do?",
+    "answer": "map transforms each item and returns a new array.",
+    "tags": ["JavaScript", "Arrays", "map"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does filter do?",
+    "answer": "filter returns a new array containing only the items that pass a condition.",
+    "tags": ["JavaScript", "Arrays", "filter"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does reduce do?",
+    "answer": "reduce combines an array into another value, such as a total, object, or grouped result.",
+    "tags": ["JavaScript", "Arrays", "reduce"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How does this work in a regular JavaScript function?",
+    "answer": "In a regular function, this depends on how the function is called.",
+    "tags": ["JavaScript", "this", "Functions", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How does this work in an arrow function?",
+    "answer": "Arrow functions do not create their own this. They use this from the surrounding lexical scope.",
+    "tags": ["JavaScript", "this", "Arrow Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between call, apply, and bind?",
+    "answer": "call runs the function now with separate arguments. apply runs it now with arguments in an array-like value. bind returns a new function with this bound.",
+    "explanation": "call = now, apply = now with array, bind = later.",
+    "tags": ["JavaScript", "this", "Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between an Array and a Set?",
+    "answer": "An Array is ordered and allows duplicates. A Set stores unique values.",
+    "explanation": "Set is useful for removing duplicates or checking membership.",
+    "tags": ["JavaScript", "Arrays", "Set", "Collections"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between Map and Object?",
+    "answer": "Both store key-value pairs. Map supports more key types and has built-in methods and a size property.",
+    "explanation": "Objects are common for structured application data.",
+    "tags": ["JavaScript", "Map", "Objects", "Collections"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between a shallow copy and a deep copy?",
+    "answer": "A shallow copy creates a new top-level object but can still share nested objects. A deep copy also copies the nested data.",
+    "explanation": "Spread syntax makes a shallow copy.",
+    "tags": ["JavaScript", "Objects", "Copying", "High Priority"]
+  },
+  {
+    "type": "debug_code",
+    "question": "Why does changing copy.address also change original.address?",
+    "answer": "The spread operator only made a shallow copy. The nested address object is still shared.",
+    "codeSnippet": "const original = {\n  name: \"Tom\",\n  address: { city: \"Seattle\" }\n};\n\nconst copy = { ...original };\ncopy.address.city = \"Dallas\";\n\nconsole.log(original.address.city);",
+    "language": "javascript",
+    "tags": ["JavaScript", "Objects", "Shallow Copy", "Debugging"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How can you deep clone supported JavaScript data?",
+    "answer": "Modern JavaScript can use structuredClone() for supported data. The best approach still depends on the data.",
+    "tags": ["JavaScript", "Objects", "Deep Copy"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does immutability mean?",
+    "answer": "Immutability means we do not change existing data directly. We create a new value for the update.",
+    "explanation": "This is especially important with React state.",
+    "tags": ["JavaScript", "Immutability", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a pure function?",
+    "answer": "A pure function gives the same output for the same input and does not cause side effects or mutate outside data.",
+    "tags": ["JavaScript", "Functions", "Pure Functions"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a Promise?",
+    "answer": "A Promise represents the future result of an asynchronous operation. It can be pending, fulfilled, or rejected.",
+    "tags": ["JavaScript", "Async", "Promises", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between Promises and async/await?",
+    "answer": "async/await is syntax built on top of Promises. It often makes sequential asynchronous code easier to read.",
+    "explanation": "With async/await, try/catch is commonly used for errors.",
+    "tags": ["JavaScript", "Async", "Promises"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the JavaScript event loop?",
+    "answer": "JavaScript runs synchronous code on the call stack. The event loop moves queued async work when the stack is empty, and microtasks run before the next macrotask.",
+    "explanation": "Promise callbacks = microtasks. setTimeout callbacks = macrotasks/tasks.",
+    "tags": ["JavaScript", "Event Loop", "Async", "High Priority"]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is the output order of this event loop example?",
+    "answer": "A, D, C, B. A and D are synchronous, the Promise callback is a microtask, and setTimeout runs later.",
+    "codeSnippet": "console.log(\"A\");\n\nsetTimeout(() => {\n  console.log(\"B\");\n}, 0);\n\nPromise.resolve().then(() => {\n  console.log(\"C\");\n});\n\nconsole.log(\"D\");",
+    "language": "javascript",
+    "tags": ["JavaScript", "Event Loop", "Promises", "Debugging", "High Priority"]
+  },
+  {
+    "type": "debug_code",
+    "question": "What is the output order here?",
+    "answer": "1, 5, 3, 4, 2. Synchronous code runs first, then Promise microtasks, then the timeout.",
+    "codeSnippet": "console.log(1);\n\nsetTimeout(() => console.log(2), 0);\n\nPromise.resolve()\n  .then(() => console.log(3))\n  .then(() => console.log(4));\n\nconsole.log(5);",
+    "language": "javascript",
+    "tags": ["JavaScript", "Event Loop", "Promises", "Debugging", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Is JavaScript single-threaded?",
+    "answer": "JavaScript code normally runs one operation at a time on the main thread. The runtime provides async features, and the event loop coordinates callbacks.",
+    "tags": ["JavaScript", "Event Loop", "Async"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you handle asynchronous errors?",
+    "answer": "Use .catch() with Promise chains or try/catch with async/await. In UI code, also show a useful error state or retry option.",
+    "tags": ["JavaScript", "Async", "Error Handling"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why use TypeScript?",
+    "answer": "TypeScript adds static type checking to JavaScript. It can catch errors earlier and makes large codebases easier to maintain and refactor.",
+    "tags": ["TypeScript", "Core", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between interface and type in TypeScript?",
+    "answer": "Both can describe data shapes. Interfaces are common for object contracts, while type aliases are more flexible for unions and composed types.",
+    "explanation": "For many object shapes, either can work.",
+    "tags": ["TypeScript", "Types", "interface", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a union type?",
+    "answer": "A union type means a value can be one of several allowed types or values.",
+    "explanation": "Example: type Status = \"NEW\" | \"ACTIVE\" | \"CLOSED\".",
+    "tags": ["TypeScript", "Union Types"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is type narrowing?",
+    "answer": "Type narrowing uses checks so TypeScript can understand a more specific type from a broader type.",
+    "explanation": "Common checks: typeof, instanceof, property checks, or discriminated values.",
+    "tags": ["TypeScript", "Narrowing", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between any and unknown?",
+    "answer": "any turns off type checking for that value. unknown is safer because you must check or narrow the type before using it.",
+    "explanation": "Prefer unknown when the incoming type is not known.",
+    "tags": ["TypeScript", "any", "unknown", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are generics in TypeScript?",
+    "answer": "Generics let us write reusable code while keeping type information. A type parameter can be decided when the function or type is used.",
+    "explanation": "Think: reusable code + type safety.",
+    "tags": ["TypeScript", "Generics", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "When would you use a generic?",
+    "answer": "I use a generic when the same function or type should work with different data types while still keeping type safety.",
+    "tags": ["TypeScript", "Generics"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between void and never?",
+    "answer": "void means a function does not return a useful value. never means the function never successfully reaches the end, such as a function that always throws.",
+    "tags": ["TypeScript", "void", "never"]
+  }
+]

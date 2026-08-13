@@ -665,6 +665,7 @@ export function SmartStudy({
             {currentMode === "multiple-choice" && multipleChoiceQuestion ? (
               <>
                 <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{multipleChoiceQuestion.question}</h2>
+                {multipleChoiceQuestion.codeSnippet && <div className="mt-6"><CodeBlock code={multipleChoiceQuestion.codeSnippet} language={multipleChoiceQuestion.language ?? "text"} /></div>}
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {currentOptions.map((option, index) => {
                     const isCorrect = option.text === multipleChoiceQuestion.correctAnswer;
@@ -689,6 +690,7 @@ export function SmartStudy({
               <div className="text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f766e] dark:text-[#5eead4]">Prompt</p>
                 <h2 className="mx-auto mt-5 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{flashcardQuestion.prompt}</h2>
+                {flashcardQuestion.codeSnippet && <div className="mx-auto mt-7 max-w-3xl text-left"><CodeBlock code={flashcardQuestion.codeSnippet} language={flashcardQuestion.language ?? "text"} /></div>}
                 {!isRevealed && !feedback ? (
                   <button type="button" onClick={() => setIsRevealed(true)} className="mt-10 min-h-12 rounded-xl bg-[#0f766e] px-8 py-3 font-semibold text-white transition hover:bg-[#0b625b] active:translate-y-px dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]">Show Answer</button>
                 ) : (
@@ -708,6 +710,7 @@ export function SmartStudy({
             ) : (
               <>
                 <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{questionPrompt(currentQuestion)}</h2>
+                {currentQuestion.codeSnippet && <div className="mt-6"><CodeBlock code={currentQuestion.codeSnippet} language={currentQuestion.language ?? "text"} /></div>}
                 <AnswerBox value={answer} onChange={setAnswer} onSubmit={() => submitAnswer(answer)} label={currentMode === "rapid-recall" ? "Short answer" : "Answer from memory"} buttonLabel="Check Answer" disabled={Boolean(feedback)} />
               </>
             )}

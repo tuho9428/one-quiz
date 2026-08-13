@@ -7,6 +7,7 @@ import {
   createStudyAttemptFromGrade,
 } from "../../domain/engine";
 import type { StudyAttempt, WriteQuestion } from "../../domain/types";
+import { CodeBlock } from "../debug-code/CodeBlock";
 import {
   applyAttemptToStats,
   createStatsForQuestions,
@@ -479,6 +480,11 @@ export function RapidRecallStudy({
         <section className="rounded-[1.5rem] border border-[#d5e2df] bg-[#fbfdfc] p-5 shadow-[0_18px_60px_rgba(27,64,57,0.08)] dark:border-[#2d4440] dark:bg-[#182320] dark:shadow-none sm:p-8" aria-labelledby="rapid-recall-question">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0f766e] dark:text-[#5eead4]">Answer quickly</p>
           <h1 id="rapid-recall-question" className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{currentQuestion?.question}</h1>
+          {currentQuestion?.codeSnippet && (
+            <div className="mt-5">
+              <CodeBlock code={currentQuestion.codeSnippet} language={currentQuestion.language ?? "text"} />
+            </div>
+          )}
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <input

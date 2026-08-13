@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildMultipleChoiceOptions, canStudyItemInMode, canUseInMultipleChoice, getEligibleModes, getMultipleChoiceDiagnostics, toFlashcardQuestion, toMultipleChoiceQuestion, toWriteQuestion } from "./eligibility";
+import { buildMultipleChoiceOptions, canStudyItemInMode, canUseInMultipleChoice, getEligibleModes, getMultipleChoiceDiagnostics, requiresCodeContext, toFlashcardQuestion, toMultipleChoiceQuestion, toWriteQuestion } from "./eligibility";
 import type { StudyQuestion } from "./types";
 
 const write: StudyQuestion = {
@@ -30,10 +30,12 @@ describe("study mode eligibility", () => {
 
   it("makes code content available to recall and debug presentations", () => {
     expect(getEligibleModes(debug)).toEqual(expect.arrayContaining(["flashcard", "write", "rapid-recall", "debug-code"]));
-    expect(toFlashcardQuestion(debug).prompt).toContain("const x = 1;");
+    expect(toFlashcardQuestion(debug).prompt).toBe("Find it");
+    expect(toFlashcardQuestion(debug).codeSnippet).toBe("const x = 1;");
     expect(toWriteQuestion(debug).expectedAnswer).toBe("The issue.");
+    expect(toWriteQuestion(debug).codeSnippet).toBe("const x = 1;");
     expect(getEligibleModes(writeWithCode)).toContain("debug-code");
-    expect(toFlashcardQuestion(writeWithCode).prompt).toContain("const answer = 42;");
+    expect(toFlashcardQuestion(writeWithCode).codeSnippet).toBe("const answer = 42;");
   });
 
   it("requires valid choices or enough candidates for multiple choice", () => {
@@ -99,7 +101,7 @@ describe("study mode eligibility", () => {
     expect(options).toEqual(["useRef", "useState", "useMemo", "useEffect"]);
   });
 
-  it("excludes debug code tasks from generated multiple choice", () => {
+  it("allows debug code tasks in generated multiple choice when code concepts are available", () => {
     const debugItem: StudyQuestion = {
       id: "debug-target",
       studySetId: "set-1",
@@ -124,9 +126,9 @@ describe("study mode eligibility", () => {
 
     const report = getMultipleChoiceDiagnostics([debugItem, ...candidates]);
     expect(report.debugCode.totalItems).toBe(1);
-    expect(report.debugCode.eligibleItems).toBe(0);
-    expect(report.debugCode.examples).toHaveLength(0);
-    expect(report.debugCode.rejectedItems[0]?.rejectionReason).toBe("code task without explicit choices");
+    expect(report.debugCode.eligibleItems).toBe(1);
+    expect(report.debugCode.examples).toHaveLength(1);
+    expect(buildMultipleChoiceOptions(debugItem, [debugItem, ...candidates])).toHaveLength(4);
   });
 
   it("allows debug code items with explicit valid choices", () => {
@@ -147,6 +149,35 @@ describe("study mode eligibility", () => {
     expect(report.debugCode.totalItems).toBe(1);
     expect(report.debugCode.eligibleItems).toBe(0);
     expect(report.debugCode.rejectedItems[0]?.rejectionReason).not.toBe("debug_code");
-    expect(report.debugCode.rejectedItems[0]?.rejectionReason).toBe("code task without explicit choices");
+    expect(report.debugCode.rejectedItems[0]?.rejectionReason).toBe("insufficient total candidates");
+  });
+
+  it("rejects a code-dependent question when its snippet is missing", () => {
+    const malformed: StudyQuestion = {
+      ...write,
+      id: "missing-code",
+      question: "What is wrong with this effect?",
+    };
+
+    expect(requiresCodeContext(malformed)).toBe(true);
+    expect(canStudyItemInMode(malformed, "write")).toBe(false);
+    expect(canStudyItemInMode(malformed, "multiple-choice", [malformed])).toBe(false);
+  });
+
+  it("preserves code context for a legacy write item in every compatible conversion", () => {
+    expect(toWriteQuestion(writeWithCode)).toMatchObject({
+      question: "Why?",
+      codeSnippet: "const answer = 42;",
+      language: "javascript",
+    });
+    expect(toMultipleChoiceQuestion({
+      ...writeWithCode,
+      expectedAnswer: "useRef",
+      concepts: ["React", "Hooks"],
+    }, [
+      { ...writeWithCode, id: "one", question: "Which hook is one?", expectedAnswer: "useState", concepts: ["React", "Hooks"] },
+      { ...writeWithCode, id: "two", question: "Which hook is two?", expectedAnswer: "useMemo", concepts: ["React", "Hooks"] },
+      { ...writeWithCode, id: "three", question: "Which hook is three?", expectedAnswer: "useEffect", concepts: ["React", "Hooks"] },
+    ])).toMatchObject({ codeSnippet: "const answer = 42;", language: "javascript" });
   });
 });

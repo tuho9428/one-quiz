@@ -20,6 +20,7 @@ interface DistractorCandidate {
 export type MultipleChoiceRejectionReason =
   | "missing question or answer"
   | "code task without explicit choices"
+  | "code task without code context"
   | "explicit choices invalid"
   | "insufficient total candidates"
   | "duplicate/near-duplicate candidates removed"
@@ -70,9 +71,22 @@ export function hasQuestionAndAnswer(question: StudyQuestion): boolean {
   return getQuestionText(question).trim().length > 0 && getAnswerText(question).trim().length > 0;
 }
 
-/** Code exercises stay in Debug / Code by default, unless they provide explicit MC choices. */
+/** Legacy type/task values describe source content, not mode restrictions. */
 export function isClearlyCodeExercise(question: StudyQuestion): boolean {
   return question.type === "debug-code" || Boolean(question.task);
+}
+
+/** Questions that refer to code context must not be shown without that context. */
+export function requiresCodeContext(question: StudyQuestion): boolean {
+  if (hasCodeCapability(question)) return true;
+
+  return /\b(this effect|this key|this code|this component|this interval|this closure|what happens here|what is wrong|why does this return|fix (?:this|the)|predict[^\n]*output|code snippet|bug)\b/i.test(
+    getQuestionText(question),
+  );
+}
+
+function hasRequiredCodeContext(question: StudyQuestion): boolean {
+  return !requiresCodeContext(question) || Boolean(question.codeSnippet?.trim());
 }
 
 function explicitChoiceTexts(question: StudyQuestion): string[] {
@@ -128,11 +142,12 @@ function candidateScore(item: StudyQuestion, candidate: StudyQuestion): Distract
   const tagOverlap = tagOverlapFor(item, candidate);
   const sameShape = answerShape(getAnswerText(item)) === answerShape(text);
   const lengthSimilarity = 1 - Math.min(1, Math.abs(getAnswerText(item).length - text.length) / Math.max(getAnswerText(item).length, text.length, 1));
+  const codeConceptMatch = hasCodeCapability(item) && hasCodeCapability(candidate) ? 35 : 0;
 
   return {
     text,
     tagOverlap,
-    score: tagOverlap * 100 + (sameShape ? 30 : 0) + Math.round(lengthSimilarity * 20),
+    score: tagOverlap * 100 + codeConceptMatch + (sameShape ? 30 : 0) + Math.round(lengthSimilarity * 20),
   };
 }
 
@@ -143,7 +158,6 @@ function getDistractorAnalysis(item: StudyQuestion, allItems: StudyQuestion[]) {
     .filter((candidate) => candidate.id !== item.id)
     .filter((candidate) => candidate.studySetId === item.studySetId)
     .filter((candidate) => normalizeForComparison(getQuestionText(candidate)) !== normalizeForComparison(questionText))
-    .filter((candidate) => !isClearlyCodeExercise(candidate))
     .filter((candidate) => getAnswerText(candidate).trim().length > 0)
     .map((candidate) => candidateScore(item, candidate));
   const deduplicatedCandidates = rawCandidates
@@ -195,10 +209,10 @@ export function buildMultipleChoiceOptions(
   random: RandomSource = Math.random,
 ): string[] | null {
   if (hasValidChoices(item)) {
+    if (!hasRequiredCodeContext(item)) return null;
     return explicitChoiceTexts(item).map((choice) => choice.trim()).filter(Boolean);
   }
-  if (isClearlyCodeExercise(item)) return null;
-  if (!hasQuestionAndAnswer(item)) return null;
+  if (!hasQuestionAndAnswer(item) || !hasRequiredCodeContext(item)) return null;
 
   const analysis = getDistractorAnalysis(item, allItems);
   if (analysis.candidates.length < 3) return null;
@@ -212,7 +226,7 @@ function getGeneratedRejectionReason(
   analysis: ReturnType<typeof getDistractorAnalysis>,
 ): MultipleChoiceRejectionReason {
   if (!hasQuestionAndAnswer(item)) return "missing question or answer";
-  if (isClearlyCodeExercise(item)) return "code task without explicit choices";
+  if (!hasRequiredCodeContext(item)) return "code task without code context";
   if (analysis.rawCandidates.length < 3) return "insufficient total candidates";
   if (analysis.candidates.length < 3 && analysis.rawCandidates.length > analysis.candidates.length) {
     return "duplicate/near-duplicate candidates removed";
@@ -247,7 +261,7 @@ export function getMultipleChoiceEligibilityDiagnostic(
   const hasExplicitChoices = explicitChoices.length > 0;
   const explicitChoicesValid = hasValidChoices(item);
   const analysis = getDistractorAnalysis(item, allItems);
-  const generatedEligible = !explicitChoicesValid && !isClearlyCodeExercise(item) && hasQuestionAndAnswer(item) && analysis.candidates.length >= 3;
+  const generatedEligible = !explicitChoicesValid && hasQuestionAndAnswer(item) && hasRequiredCodeContext(item) && analysis.candidates.length >= 3;
   const eligible = explicitChoicesValid || generatedEligible;
 
   return {
@@ -328,14 +342,14 @@ export function canStudyItemInMode(
     case "multiple-choice":
       return canUseInMultipleChoice(question, allItems);
     case "debug-code":
-      return hasCodeCapability(question);
+      return hasCodeCapability(question) && hasRequiredCodeContext(question);
     case "flashcard":
     case "write":
     case "rapid-recall":
     case "smart-study":
     case "weak-areas":
     case "exam":
-      return hasQuestionAndAnswer(question);
+      return hasQuestionAndAnswer(question) && hasRequiredCodeContext(question);
   }
 }
 
@@ -369,12 +383,14 @@ export function toFlashcardQuestion(question: StudyQuestion): FlashcardQuestion 
     id: question.id,
     studySetId: question.studySetId,
     type: "flashcard",
-    prompt: hasCodeCapability(question)
-      ? `${getQuestionText(question)}\n\n${question.codeSnippet ?? ""}`
-      : getQuestionText(question),
+    prompt: getQuestionText(question),
     answer: getAnswerText(question),
     explanation: question.type === "debug-code" ? question.correctedCode ?? undefined : question.explanation,
     concepts: question.concepts,
+    codeSnippet: question.codeSnippet,
+    language: question.language,
+    task: question.task,
+    choices: question.choices,
   };
 }
 
@@ -388,6 +404,10 @@ export function toWriteQuestion(question: StudyQuestion): WriteQuestion {
     importantKeywords: question.concepts ?? [],
     explanation: question.type === "debug-code" ? question.correctedCode ?? undefined : question.explanation,
     concepts: question.concepts,
+    codeSnippet: question.codeSnippet,
+    language: question.language,
+    task: question.task,
+    choices: question.choices,
   };
 }
 

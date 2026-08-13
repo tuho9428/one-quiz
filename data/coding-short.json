@@ -1,0 +1,244 @@
+[
+  {
+    "type": "flashcard",
+    "question": "What should you do before starting a coding interview problem?",
+    "answer": "Clarify the requirements first. Ask about the data, expected behavior, edge cases, and any limits before writing code.",
+    "explanation": "Good pattern: clarify → simplest working version → improve.",
+    "tags": ["React", "Coding Interview", "Communication", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What should you say while coding if you are not sure about syntax?",
+    "answer": "Explain the approach first and keep working through the syntax. It is better to show your reasoning than become silent.",
+    "tags": ["Coding Interview", "Communication"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you build a basic Todo or Task Manager?",
+    "answer": "Use state for the input, task list, and filter. Add tasks, toggle completed state, remove tasks, and derive the visible list from the selected filter.",
+    "explanation": "Core concepts: state, arrays, CRUD, filtering, immutability.",
+    "tags": ["React", "Todo", "State", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why use functional state updates in a Todo app?",
+    "answer": "Use functional updates when the next state depends on the previous state. This helps avoid stale state problems.",
+    "explanation": "Example: setTodos(prev => [...prev, newTodo]).",
+    "tags": ["React", "State", "Todo"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why should you not mutate todo.completed directly?",
+    "answer": "React state should be treated as immutable. Create a new object so React receives a new reference.",
+    "tags": ["React", "State", "Immutability"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why should you avoid using an array index as a key in a Todo list?",
+    "answer": "If items are deleted or reordered, the same index can refer to a different item. A stable ID is safer.",
+    "tags": ["React", "Keys", "Todo"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you build a basic autocomplete?",
+    "answer": "Use a controlled input for the query, filter the available data, and render the matching results.",
+    "explanation": "For API search, add debounce, loading, errors, and stale-request handling.",
+    "tags": ["React", "Autocomplete", "Forms", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What questions should you ask before building autocomplete?",
+    "answer": "Ask whether the data is local or from an API, whether search is case-insensitive, whether there is a minimum input length, and whether debounce is needed.",
+    "tags": ["React", "Autocomplete", "Coding Interview"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why debounce an API autocomplete search?",
+    "answer": "Debounce waits until the user pauses typing before sending the request. This reduces unnecessary API calls.",
+    "tags": ["React", "Autocomplete", "Debounce", "API", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How does a useDebounce hook work?",
+    "answer": "It starts a timeout when the value changes. If the value changes again before the delay finishes, cleanup clears the old timeout.",
+    "explanation": "Return the delayed value after the timer completes.",
+    "tags": ["React", "Hooks", "Debounce"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why does a debounce effect need cleanup?",
+    "answer": "Cleanup clears the previous timer. Without it, multiple timers could run and the debounce would not work correctly.",
+    "tags": ["React", "useEffect", "Debounce", "Cleanup"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you fetch and display a contacts list?",
+    "answer": "Use state for data, loading, and error. Fetch the contacts in an effect, then render loading, error, empty, or success UI.",
+    "tags": ["React", "API", "useEffect", "Contacts", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why use AbortController with fetch?",
+    "answer": "AbortController can cancel a request when the component unmounts or when the request is no longer needed.",
+    "tags": ["React", "API", "AbortController", "Race Condition"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why check response.ok after fetch?",
+    "answer": "fetch does not automatically reject for HTTP errors like 404 or 500. Checking response.ok lets us handle those errors.",
+    "tags": ["JavaScript", "Fetch", "API", "Error Handling"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What UI states should an API list handle?",
+    "answer": "Handle loading, error, empty, and success separately.",
+    "tags": ["React", "API", "UI State"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you design a reusable table component?",
+    "answer": "Pass the column configuration and row data as props. The table maps the columns for headers and uses each column definition to render cells.",
+    "explanation": "This lets one table component support different datasets.",
+    "tags": ["React", "Reusable Components", "Table", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How can a reusable table support custom cells?",
+    "answer": "Allow a column to provide a render function. If it exists, call that function for the row instead of reading a simple property.",
+    "tags": ["React", "Reusable Components", "Table"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why copy an array before calling sort() in React?",
+    "answer": "Array.sort() mutates the original array. Copy it first so React state is not mutated directly.",
+    "explanation": "Example: [...transactions].sort(...).",
+    "tags": ["React", "JavaScript", "Sorting", "Immutability"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you build an expandable list?",
+    "answer": "Store whether an item is expanded and toggle that state when the user clicks the item.",
+    "tags": ["React", "Expandable List", "State"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you allow only one expandable row to stay open?",
+    "answer": "Move the expanded state to the parent and store the expanded item's ID instead of separate boolean state in every row.",
+    "explanation": "This is an example of lifting state up.",
+    "tags": ["React", "Expandable List", "Lifting State"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you build a Stepper component?",
+    "answer": "Store the current step index in state. Next and Previous update the index while keeping it inside the valid step range.",
+    "tags": ["React", "Stepper", "State", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you add validation to a Stepper?",
+    "answer": "Validate the current step before moving forward. Only change the step when the current data is valid.",
+    "tags": ["React", "Stepper", "Forms", "Validation"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you create a reusable useMousePosition hook?",
+    "answer": "Add a mousemove listener in useEffect, update position state, and remove the listener in cleanup.",
+    "tags": ["React", "Custom Hooks", "useEffect", "Mouse Position"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why remove an event listener in effect cleanup?",
+    "answer": "Cleanup prevents old listeners from staying active after the component unmounts or the effect changes.",
+    "tags": ["React", "useEffect", "Cleanup", "Events"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you combine books with their authors?",
+    "answer": "Map over the books and find the matching author by authorId, then return a new object with the author name.",
+    "tags": ["JavaScript", "Arrays", "Data Transformation"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you optimize matching 100,000 books with 100,000 authors?",
+    "answer": "Build a Map from author ID to author data first. Then each book can look up its author directly instead of repeatedly scanning the authors array.",
+    "explanation": "Build lookup once, then use constant-time lookups.",
+    "tags": ["JavaScript", "Map", "Performance", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you render a list of buttons from data?",
+    "answer": "Map over the data and return a button for each item. Use a stable unique key for every button.",
+    "tags": ["React", "Lists", "Keys"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What if button labels are not unique?",
+    "answer": "Do not use the label as the key. Use a stable unique ID instead.",
+    "tags": ["React", "Lists", "Keys"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you build a login form?",
+    "answer": "Use controlled inputs for email and password, validate the form, submit with a POST request, and handle loading and error states.",
+    "tags": ["React", "Forms", "Login", "API", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why call preventDefault() in a React form submit handler?",
+    "answer": "It prevents the browser's normal form submission and page reload so React can handle the submit.",
+    "tags": ["React", "Forms"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Is frontend form validation enough?",
+    "answer": "No. Frontend validation improves the user experience, but the backend must still validate untrusted input.",
+    "tags": ["React", "Forms", "Validation", "Security"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you model Tic-Tac-Toe state?",
+    "answer": "Store the board as an array and store whose turn it is. Update the board immutably when a square is clicked.",
+    "tags": ["React", "Tic Tac Toe", "State"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Should the Tic-Tac-Toe winner be stored as separate state?",
+    "answer": "Usually no. The winner can be derived from the current board, so separate state would duplicate information.",
+    "explanation": "Prefer derived state when possible.",
+    "tags": ["React", "Derived State", "Tic Tac Toe"]
+  },
+  {
+    "type": "debug_code",
+    "question": "Why does this interval keep logging 0?",
+    "answer": "The interval callback closes over the count value from the first render. Because the effect has an empty dependency array, it keeps using that old value.",
+    "explanation": "This is a stale closure problem.",
+    "codeSnippet": "function Counter() {\n  const [count, setCount] = useState(0);\n\n  useEffect(() => {\n    const timer = setInterval(() => {\n      console.log(count);\n    }, 1000);\n\n    return () => clearInterval(timer);\n  }, []);\n\n  return (\n    <button onClick={() => setCount(count + 1)}>\n      {count}\n    </button>\n  );\n}",
+    "language": "jsx",
+    "tags": ["React", "Closures", "useEffect", "Debugging", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a stale closure in React?",
+    "answer": "A stale closure happens when a callback keeps values from an older render instead of the latest state or props.",
+    "tags": ["React", "Closures", "Hooks"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What should a React component test focus on?",
+    "answer": "Test behavior from the user's point of view, such as what renders and what changes after user actions, instead of testing internal state directly.",
+    "tags": ["React", "Testing", "Jest", "Testing Library", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you test a counter button?",
+    "answer": "Render the component, click the Increment button, and check that the new count appears in the UI.",
+    "tags": ["React", "Testing", "Testing Library"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Which coding exercises should you practice first for this round?",
+    "answer": "Practice Todo, Autocomplete, API Contacts, Reusable Table, Stepper, and stale-state debugging first.",
+    "explanation": "These cover state, arrays, forms, APIs, debounce, reuse, effects, and debugging.",
+    "tags": ["React", "Coding Interview", "High Priority"]
+  }
+]

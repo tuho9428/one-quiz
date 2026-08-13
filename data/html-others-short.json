@@ -1,0 +1,287 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Why is semantic HTML important?",
+    "answer": "Semantic HTML uses elements based on their meaning, like button, nav, main, form, and label. It improves accessibility and makes the code easier to understand.",
+    "explanation": "Think: meaning + accessibility + maintainability.",
+    "tags": ["HTML", "Semantic HTML", "Accessibility", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why use a button instead of a div with onClick?",
+    "answer": "A button already supports keyboard use, focus, and accessibility semantics. A div would require us to recreate those behaviors.",
+    "tags": ["HTML", "Accessibility", "Semantic HTML"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the CSS box model?",
+    "answer": "The box model includes content, padding, border, and margin. Padding is inside the border, while margin is outside the border.",
+    "tags": ["CSS", "Box Model"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does box-sizing: border-box do?",
+    "answer": "It makes the declared width and height include the content, padding, and border. This makes sizing easier to reason about.",
+    "tags": ["CSS", "Box Model"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between Flexbox and CSS Grid?",
+    "answer": "Flexbox is mainly for one-dimensional layouts, like a row or column. Grid is better for two-dimensional layouts with rows and columns.",
+    "explanation": "Flexbox = one direction. Grid = rows + columns.",
+    "tags": ["CSS", "Flexbox", "Grid", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "When would you use Flexbox?",
+    "answer": "I use Flexbox for layouts like navigation bars, button groups, or aligned form controls where items mainly flow in one direction.",
+    "tags": ["CSS", "Flexbox"]
+  },
+  {
+    "type": "flashcard",
+    "question": "When would you use CSS Grid?",
+    "answer": "I use Grid for structured layouts where I need control over both rows and columns, such as card layouts or page sections.",
+    "tags": ["CSS", "Grid"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is CSS specificity?",
+    "answer": "Specificity decides which CSS rule wins when multiple rules target the same element. I try to keep selectors simple instead of using more overrides or !important.",
+    "tags": ["CSS", "Specificity"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you resolve a CSS styling conflict?",
+    "answer": "First I inspect which rule is winning and why. Then I fix the selector or component styling instead of adding unnecessary overrides.",
+    "tags": ["CSS", "Debugging"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is responsive web design?",
+    "answer": "Responsive design means the UI works well across different screen sizes. Common tools include flexible layouts, media queries, responsive images, Flexbox, and Grid.",
+    "tags": ["CSS", "Responsive Design", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What does mobile-first design mean?",
+    "answer": "Mobile-first means starting with smaller screens first, then adding improvements for larger screens with media queries.",
+    "tags": ["CSS", "Responsive Design", "Mobile First"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is web accessibility?",
+    "answer": "Accessibility means building the app so people with different abilities can use it. Important areas include semantic HTML, keyboard support, focus, labels, alt text, and contrast.",
+    "tags": ["Accessibility", "HTML", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "When should you use ARIA?",
+    "answer": "Use native HTML first. Use ARIA when native elements do not fully describe a custom component or its state.",
+    "explanation": "ARIA should enhance semantics, not replace good HTML.",
+    "tags": ["Accessibility", "ARIA"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you make a modal accessible?",
+    "answer": "Give it an accessible name, move focus into it, keep keyboard focus inside while open, support closing, and return focus to the opener when it closes.",
+    "explanation": "Also use appropriate dialog semantics.",
+    "tags": ["Accessibility", "Modal", "Focus", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between alt text and aria-label?",
+    "answer": "Alt text describes meaningful images. aria-label gives an accessible name to an element when visible text is not available.",
+    "tags": ["Accessibility", "ARIA", "Images"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you handle loading, empty, error, and success API states?",
+    "answer": "I handle them as separate UI states so the user always knows what is happening. I show loading, empty, error, or the real content.",
+    "tags": ["API", "React", "UI State", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you implement pagination?",
+    "answer": "I use the API's pagination contract, such as page and page size or cursor. I keep the current page in state and reset it when filters or search change.",
+    "tags": ["API", "Pagination"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is debouncing?",
+    "answer": "Debouncing waits until the user stops triggering an event for a short time before running the action. It is common for search input.",
+    "tags": ["JavaScript", "API", "Debounce", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is throttling?",
+    "answer": "Throttling limits how often a function can run during continuous activity.",
+    "tags": ["JavaScript", "Throttle"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between debounce and throttle?",
+    "answer": "Debounce waits until activity pauses. Throttle allows the function to run at a controlled frequency while activity continues.",
+    "tags": ["JavaScript", "Debounce", "Throttle"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you handle race conditions between API requests?",
+    "answer": "Prevent older requests from replacing newer data. I can cancel old requests with AbortController or use a data library that handles request identity.",
+    "tags": ["API", "Race Condition", "AbortController", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is CORS?",
+    "answer": "CORS stands for Cross-Origin Resource Sharing. It lets a server tell the browser which other origins are allowed to access its resources.",
+    "tags": ["Security", "CORS", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why can a browser block a cross-origin request?",
+    "answer": "Browsers enforce the same-origin policy. If the server does not allow the requesting origin through CORS, the browser can block frontend access to the response.",
+    "tags": ["Security", "CORS"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is XSS?",
+    "answer": "XSS happens when untrusted content is executed as code in the browser. We should avoid unsafe HTML injection and safely handle user content.",
+    "explanation": "React escapes normal JSX text, but dangerouslySetInnerHTML needs extra care.",
+    "tags": ["Security", "XSS"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is CSRF?",
+    "answer": "CSRF is when an attacker causes a user's browser to send an unwanted authenticated request. Protection can include SameSite cookies, CSRF tokens, and origin checks.",
+    "tags": ["Security", "CSRF"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between frontend and backend authorization?",
+    "answer": "Frontend authorization is mainly for user experience. The backend must still enforce authorization because frontend checks can be bypassed.",
+    "explanation": "Frontend = UX. Backend = security boundary.",
+    "tags": ["Security", "Authorization", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is the difference between unit, integration, and E2E tests?",
+    "answer": "Unit tests check small pieces in isolation. Integration tests check multiple pieces together. E2E tests simulate larger real user flows.",
+    "tags": ["Testing", "Unit Test", "Integration Test", "E2E", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What should you test in a React form?",
+    "answer": "Test what the user sees and does: fields, input changes, validation, invalid submission, valid submission, and API errors when needed.",
+    "tags": ["Testing", "React", "Forms"]
+  },
+  {
+    "type": "flashcard",
+    "question": "When should you mock an API in tests?",
+    "answer": "Mock the API when you want to test frontend behavior without depending on a real backend, such as success, empty, error, or slow responses.",
+    "tags": ["Testing", "API", "Mocking"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is a flaky test?",
+    "answer": "A flaky test sometimes passes and sometimes fails without a real code change. Common causes are timing problems, shared state, real network calls, or bad async handling.",
+    "tags": ["Testing", "Flaky Tests"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is code coverage?",
+    "answer": "Code coverage measures how much code the tests execute. High coverage does not automatically mean the tests are good.",
+    "explanation": "Important behavior matters more than the percentage alone.",
+    "tags": ["Testing", "Code Coverage"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How would you investigate a slow React page?",
+    "answer": "I would measure first using browser tools and React profiling. Then I would check network requests, rendering, JavaScript work, bundle size, large lists, and unnecessary rerenders.",
+    "explanation": "Measure first, then optimize the real bottleneck.",
+    "tags": ["React", "Performance", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What can cause unnecessary React renders?",
+    "answer": "Common causes include state stored too high, changing Context values, new object or function references, and unnecessary state updates.",
+    "tags": ["React", "Performance", "Rendering"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is lazy loading?",
+    "answer": "Lazy loading delays loading something until it is needed. In React, it can reduce the amount of JavaScript loaded at startup.",
+    "tags": ["React", "Performance", "Lazy Loading"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is code splitting?",
+    "answer": "Code splitting breaks a large JavaScript bundle into smaller chunks so users only download some code when they need that feature.",
+    "tags": ["React", "Performance", "Code Splitting"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is list virtualization?",
+    "answer": "List virtualization renders only the visible rows and a small buffer instead of putting thousands of items in the DOM at once.",
+    "tags": ["React", "Performance", "Virtualization"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How can a React component cause a memory leak?",
+    "answer": "It can leave timers, listeners, subscriptions, or requests active after they are no longer needed. Effect cleanup should remove or cancel them.",
+    "tags": ["React", "Performance", "Memory Leak", "useEffect"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did the Walmart design system help IRIS?",
+    "answer": "Walmart Living Design gave us standard components and UI patterns. That improved consistency and maintainability across IRIS.",
+    "tags": ["Walmart", "IRIS", "Design System"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you avoid regressions during the UI migration?",
+    "answer": "I compared the old and new UI, checked important interactions, ran linting and tests, reviewed visual differences, and validated the feature in the target environment.",
+    "tags": ["Walmart", "IRIS", "UI Migration", "Testing"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Give an example of filtering and large-data UI work in IRIS.",
+    "answer": "I worked on Admin Feedback filters and table presentation, and on Linked Accounts filtering for seller relationship data.",
+    "explanation": "For large data, also think about loading, filtering, pagination, infinite scroll, and rendering cost.",
+    "tags": ["Walmart", "IRIS", "Filtering", "Tables"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did system UI components help with accessibility?",
+    "answer": "Standard components can provide consistent basic accessibility behavior. I still need correct labels, content, and interaction behavior in the application.",
+    "tags": ["Walmart", "IRIS", "Accessibility", "Design System"]
+  },
+  {
+    "type": "write",
+    "question": "How would you build a seller search box that calls an API after the user stops typing?",
+    "answer": "I would use a controlled input, debounce the search value, avoid very short searches, show loading and error states, and prevent stale responses from replacing newer results.",
+    "tags": ["React", "API", "Debounce", "Practical", "High Priority"]
+  },
+  {
+    "type": "write",
+    "question": "How would you explain an accessible modal in a coding interview?",
+    "answer": "I would mention dialog semantics, an accessible name, moving focus into the modal, keyboard support, keeping focus out of the background, and restoring focus after close.",
+    "tags": ["Accessibility", "Modal", "Practical"]
+  },
+  {
+    "type": "write",
+    "question": "A large table is slow. What would you investigate?",
+    "answer": "I would measure first, then check the number of DOM rows, unnecessary renders, repeated calculations, repeated API calls, filtering on every keystroke, and whether pagination or virtualization would help.",
+    "tags": ["React", "Performance", "Tables", "Practical", "High Priority"]
+  },
+  {
+    "type": "write",
+    "question": "What would you do if an API returns a 500 error?",
+    "answer": "Show a useful error state, keep useful existing data if possible, capture diagnostic information, and offer retry when appropriate.",
+    "tags": ["API", "Error Handling", "Practical"]
+  },
+  {
+    "type": "write",
+    "question": "A user cannot access a page. What would you check?",
+    "answer": "I would check authentication, authorization, routing, and API permissions. The frontend can redirect or hide UI, but the backend must still enforce access.",
+    "tags": ["Security", "Authorization", "Routing", "Practical"]
+  }
+]

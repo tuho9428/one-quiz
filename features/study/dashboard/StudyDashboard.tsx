@@ -1,8 +1,14 @@
 import Link from "next/link";
+import type { ContinueStudyingCandidate } from "./continue";
 import type { DashboardStudySet } from "./summary";
 
-export function StudyDashboard({ studySets }: { studySets: DashboardStudySet[] }) {
-  const continueSet = studySets[0];
+export function StudyDashboard({
+  studySets,
+  continueStudying,
+}: {
+  studySets: DashboardStudySet[];
+  continueStudying: ContinueStudyingCandidate | null;
+}) {
 
   return (
     <main className="min-h-[100dvh] bg-[#f3f6f5] px-4 py-8 text-[#16322e] dark:bg-[#101817] dark:text-[#edf5f1] sm:px-8 sm:py-12">
@@ -13,11 +19,21 @@ export function StudyDashboard({ studySets }: { studySets: DashboardStudySet[] }
           <p className="mt-4 text-base leading-7 text-[#55716a] dark:text-[#a8bdb7]">Your active-recall home for focused practice, due reviews, and stronger memory.</p>
         </section>
 
-        {continueSet && <section className="rounded-[1.75rem] bg-[#0f766e] p-6 text-white shadow-[0_18px_50px_rgba(15,118,110,0.22)] dark:bg-[#174f48] sm:p-8">
+        {continueStudying && <section className="rounded-[1.75rem] bg-[#0f766e] p-6 text-white shadow-[0_18px_50px_rgba(15,118,110,0.22)] dark:bg-[#174f48] sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#b8f1e4]">Continue studying</p>
           <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div><h2 className="text-3xl font-semibold tracking-tight">{continueSet.title}</h2><p className="mt-2 text-[#d2f6ee]">{continueSet.itemCount} study items ready for retrieval practice.</p></div>
-            <Link href={`/sets/${continueSet.id}`} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-[#0b625b] transition hover:bg-[#e8faf5] active:translate-y-px">Open study set</Link>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight">{continueStudying.studySetTitle}</h2>
+              {continueStudying.mode && <p className="mt-2 font-semibold text-[#d2f6ee]">{formatMode(continueStudying.mode)}</p>}
+              <p className="mt-1 text-[#d2f6ee]">
+                {continueStudying.incomplete
+                  ? continueStudying.completedItems > 0
+                    ? `${continueStudying.completedItems} question${continueStudying.completedItems === 1 ? "" : "s"} answered in this session.`
+                    : "Study session started."
+                  : `Last studied ${formatDate(continueStudying.lastStudiedAt)}.`}
+              </p>
+            </div>
+            <Link href={getContinueHref(continueStudying)} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-[#0b625b] transition hover:bg-[#e8faf5] active:translate-y-px">{continueStudying.incomplete ? continueStudying.resumable ? "Continue" : "Open mode" : "Study again"}</Link>
           </div>
         </section>}
 
@@ -40,4 +56,44 @@ function DashboardMetric({ label, value }: { label: string; value: string | numb
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
+}
+
+function getContinueHref(continueStudying: ContinueStudyingCandidate): string {
+  const route = continueStudying.mode ? modeRoute(continueStudying.mode) : null;
+  return route ? `/sets/${continueStudying.studySetId}/study/${route}` : `/sets/${continueStudying.studySetId}`;
+}
+
+function modeRoute(mode: string): string | null {
+  switch (mode.toLowerCase()) {
+    case "flashcard":
+    case "flashcards":
+      return "flashcards";
+    case "multiple-choice":
+    case "multiple_choice":
+      return "multiple-choice";
+    case "write":
+      return "write";
+    case "rapid-recall":
+    case "rapid_recall":
+      return "rapid-recall";
+    case "smart-study":
+    case "smart_study":
+      return "smart-study";
+    case "debug-code":
+    case "debug_code":
+      return "debug-code";
+    default:
+      return null;
+  }
+}
+
+function formatMode(mode: string): string {
+  const route = modeRoute(mode);
+  if (route === "flashcards") return "Flashcards";
+  if (route === "multiple-choice") return "Multiple Choice";
+  if (route === "rapid-recall") return "Rapid Recall";
+  if (route === "smart-study") return "Smart Study";
+  if (route === "debug-code") return "Debug / Code";
+  if (route === "write") return "Write";
+  return mode;
 }

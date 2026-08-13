@@ -64,6 +64,28 @@ describe("portable study JSON", () => {
     }));
   });
 
+  it("keeps code context through a write export and import round trip", () => {
+    const portable = portableItemFromStudyQuestion({
+      id: "write-code",
+      studySetId: "set-1",
+      type: "write",
+      question: "What is wrong with this effect?",
+      expectedAnswer: "The effect creates an update loop.",
+      importantKeywords: ["Effects"],
+      concepts: ["React", "Effects"],
+      codeSnippet: "useEffect(() => setCount(count + 1), [count]);",
+      language: "jsx",
+      task: "identify-bug",
+    });
+
+    expect(parsePortableStudyJson(JSON.stringify([portable])).validItems[0]).toEqual(expect.objectContaining({
+      type: "write",
+      codeSnippet: "useEffect(() => setCount(count + 1), [count]);",
+      language: "jsx",
+      task: "identify-bug",
+    }));
+  });
+
   it("accepts a debug_code item with valid explicit choices even without a code snippet", () => {
     const result = parsePortableStudyJson(JSON.stringify([{
       type: "debug_code",

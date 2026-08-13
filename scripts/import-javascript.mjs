@@ -60,9 +60,37 @@ const importConfig = {
     description: "Shorter React interview practice covering components, hooks, state, performance, and debugging.",
     sourceKey: "react-short-interview-prep-v1",
   },
+  "js-short": {
+    dataFile: "js-short.json",
+    setId: "js-short",
+    title: "JS Short",
+    description: "Short JavaScript and TypeScript review covering scope, closures, collections, asynchronous execution, the event loop, and types.",
+    sourceKey: "js-short-v1",
+  },
+  "resume-short": {
+    dataFile: "resume-short.json",
+    setId: "resume-short",
+    title: "Resume Short",
+    description: "Short Walmart IRIS resume and behavioral interview review covering project ownership, frontend architecture, collaboration, testing, deployment, and production support.",
+    sourceKey: "resume-short-v1",
+  },
+  "coding-short": {
+    dataFile: "coding-short.json",
+    setId: "coding-short",
+    title: "Coding Short",
+    description: "Short React and frontend coding interview review covering state, forms, APIs, reusable components, performance, testing, and debugging.",
+    sourceKey: "coding-short-v1",
+  },
+  "html-others-short": {
+    dataFile: "html-others-short.json",
+    setId: "html-others-short",
+    title: "HTML and Others Short",
+    description: "Short HTML, CSS, accessibility, API, security, testing, performance, and frontend interview review.",
+    sourceKey: "html-others-short-v1",
+  },
 };
 const config = importConfig[importName];
-if (!config) throw new Error(`Unknown import: ${importName}. Choose react, javascript, resume, html, or coding.`);
+if (!config) throw new Error(`Unknown import: ${importName}. Choose javascript, js-short, resume-short, coding-short, html-others-short, react-short, resume, html, or coding.`);
 const dataPath = path.join(root, "data", config.dataFile);
 const parsed = parsePortableStudyJson(fs.readFileSync(dataPath, "utf8"));
 if (parsed.syntaxError || parsed.errors.length > 0) {

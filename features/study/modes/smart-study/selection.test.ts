@@ -37,6 +37,18 @@ const write: StudyQuestion = {
   importantKeywords: ["idea"],
 };
 
+const codeQuestion: StudyQuestion = {
+  id: "code-1",
+  studySetId: "set-1",
+  type: "debug-code",
+  task: "identify-bug",
+  problemStatement: "What is wrong with this effect?",
+  language: "jsx",
+  codeSnippet: "useEffect(() => setCount(count + 1), [count]);",
+  expectedExplanation: "The effect creates an update loop.",
+  concepts: ["React", "Effects"],
+};
+
 function candidate(question: StudyQuestion, mastery = 0) {
   return {
     question,
@@ -100,10 +112,21 @@ describe("Smart Study selection", () => {
     expect(getPreferredMode(write, 2)).toBe("rapid-recall");
   });
 
+  it("keeps code context eligible for both write and multiple choice progression", () => {
+    const codeDistractors: StudyQuestion[] = [
+      codeQuestion,
+      { ...write, id: "code-2", question: "Code question two", expectedAnswer: "The dependency is stale.", concepts: ["React", "Effects"], codeSnippet: "useEffect(() => {}, []);", task: "identify-bug" },
+      { ...write, id: "code-3", question: "Code question three", expectedAnswer: "The callback runs once.", concepts: ["React", "Effects"], codeSnippet: "useEffect(() => {}, []);", task: "identify-bug" },
+      { ...write, id: "code-4", question: "Code question four", expectedAnswer: "The state update is batched.", concepts: ["React", "Effects"], codeSnippet: "useEffect(() => {}, []);", task: "identify-bug" },
+    ];
+
+    expect(getPreferredMode(codeQuestion, 1, [], codeDistractors)).toBe("multiple-choice");
+    expect(getPreferredMode(codeQuestion, 3, [], codeDistractors)).toBe("write");
+  });
+
   it("adapts the next level to performance", () => {
     expect(getNextDifficultyLevel(1, "correct")).toBe(2);
     expect(getNextDifficultyLevel(3, "partial")).toBe(3);
     expect(getNextDifficultyLevel(3, "incorrect")).toBe(2);
   });
 });
-

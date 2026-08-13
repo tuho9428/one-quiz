@@ -10,6 +10,7 @@ import type {
   StudySet,
 } from "@/features/study/domain/types";
 import type { NormalizedPortableStudyItem, PortableStudyItem } from "@/features/study/import/portable";
+import { selectContinueStudying, type ContinueStudyingCandidate } from "../../features/study/dashboard/continue";
 import { pool } from "../db";
 import { getCurrentUserId } from "../auth";
 
@@ -39,7 +40,7 @@ export interface StudyProgressUpdate {
   lastResult: AttemptOutcome | "skipped" | null;
 }
 
-interface StudyItemRow {
+export interface StudyItemRow {
   id: string;
   study_set_id: string;
   type: StudyQuestion["type"];
@@ -70,7 +71,7 @@ function viewerOwner(ownerId: string | null): { sql: string; params: string[] } 
     : { sql: "ss.owner_id is null", params: [] };
 }
 
-function mapRowToQuestion(row: StudyItemRow): StudyQuestion {
+export function mapStudyItemRowToQuestion(row: StudyItemRow): StudyQuestion {
   const base = {
     id: row.id,
     studySetId: row.study_set_id,
@@ -87,7 +88,7 @@ function mapRowToQuestion(row: StudyItemRow): StudyQuestion {
       return { ...base, type: "multiple-choice", question: row.question, correctAnswer: correct, distractors: row.options.filter((option) => !option.isCorrect).map((option) => option.text), explanation: row.explanation ?? undefined, codeSnippet: row.code_snippet ?? undefined, language: row.code_snippet ? row.language ?? "text" : undefined, task: row.code_snippet ? row.task : undefined };
     }
     case "debug-code":
-      return { ...base, type: "debug-code", task: row.task, problemStatement: row.question, language: row.language ?? "text", codeSnippet: row.code_snippet ?? "", expectedExplanation: row.answer, correctedCode: row.explanation ?? undefined, choices: row.options.map((option) => option.text) };
+      return { ...base, type: "debug-code", task: row.task, problemStatement: row.question, language: row.language ?? "text", codeSnippet: row.code_snippet ?? "", expectedExplanation: row.answer, choices: row.options.map((option) => option.text) };
   }
 }
 
@@ -99,7 +100,7 @@ function mapSetRow(row: StudySetRow): StudySetRecord {
     description: row.description,
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
-    questions: row.items.sort((left, right) => left.position - right.position).map(mapRowToQuestion),
+    questions: row.items.sort((left, right) => left.position - right.position).map(mapStudyItemRowToQuestion),
   };
 }
 
@@ -155,6 +156,125 @@ export async function getStudySets(ownerId?: string | null): Promise<StudySetRec
   const predicate = resolvedOwnerId ? "ss.owner_id = $1" : "ss.owner_id is null";
   const result = await pool.query<StudySetRow>(`${studySetSelect} where ${predicate} order by ss.updated_at desc`, resolvedOwnerId ? [resolvedOwnerId] : []);
   return result.rows.map(mapSetRow);
+}
+
+interface ContinueStudyingRow {
+  study_set_id: string;
+  study_set_title: string;
+  session_id: string | null;
+  mode: string | null;
+  activity_at: Date | string | null;
+  completed_items: number;
+  total_items: number;
+  incomplete: boolean;
+}
+
+/**
+ * Finds real study activity for the current owner. Set creation/update time is
+ * intentionally absent from this query so imported content cannot masquerade
+ * as something the learner recently studied.
+ */
+export async function getContinueStudyingForUser(
+  ownerId?: string | null,
+): Promise<ContinueStudyingCandidate | null> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const setOwnerPredicate = resolvedOwnerId ? "ss.owner_id = $1" : "ss.owner_id is null";
+  const sessionSetOwnerPredicate = resolvedOwnerId ? "session_set.owner_id = $1" : "session_set.owner_id is null";
+  const progressOwnerPredicate = resolvedOwnerId ? "sp.owner_id = $1" : "sp.owner_id is null";
+  const result = await pool.query<ContinueStudyingRow>(
+    `with incomplete_sessions as (
+       select
+         ss.study_set_id,
+         ss.id as session_id,
+         ss.mode,
+         greatest(ss.started_at, coalesce(max(sa.created_at), ss.started_at)) as activity_at,
+         count(distinct sa.study_item_id)::int as completed_items,
+         (select count(*)::int from study_items total_items where total_items.study_set_id = ss.study_set_id) as total_items,
+         true as incomplete
+       from study_sessions ss
+       join study_sets session_set on session_set.id = ss.study_set_id
+       left join study_attempts sa on sa.session_id = ss.id
+       where ss.completed_at is null and ${sessionSetOwnerPredicate}
+       group by ss.study_set_id, ss.id, ss.mode, ss.started_at
+     ),
+     activity as (
+       select
+         ss.study_set_id,
+         null::text as session_id,
+         ss.mode,
+         greatest(ss.started_at, coalesce(ss.completed_at, ss.started_at)) as activity_at,
+         0::int as completed_items,
+         (select count(*)::int from study_items total_items where total_items.study_set_id = ss.study_set_id) as total_items,
+         false as incomplete
+       from study_sessions ss
+       where ${setOwnerPredicate}
+
+       union all
+
+       select
+         ss.study_set_id,
+         null::text as session_id,
+         sa.mode,
+         sa.created_at as activity_at,
+         0::int as completed_items,
+         (select count(*)::int from study_items total_items where total_items.study_set_id = ss.study_set_id) as total_items,
+         false as incomplete
+       from study_attempts sa
+       join study_sessions ss on ss.id = sa.session_id
+       where ${setOwnerPredicate}
+
+       union all
+
+       select
+         si.study_set_id,
+         null::text as session_id,
+         null::text as mode,
+         sp.last_reviewed_at as activity_at,
+         0::int as completed_items,
+         (select count(*)::int from study_items total_items where total_items.study_set_id = si.study_set_id) as total_items,
+         false as incomplete
+       from study_progress sp
+       join study_items si on si.id = sp.study_item_id
+       join study_sets ss on ss.id = si.study_set_id
+       where sp.last_reviewed_at is not null
+         and ${progressOwnerPredicate}
+         and ${setOwnerPredicate}
+     )
+     select
+       activity_rows.study_set_id,
+       study_sets.title as study_set_title,
+       activity_rows.session_id,
+       activity_rows.mode,
+       activity_rows.activity_at,
+       activity_rows.completed_items,
+       activity_rows.total_items,
+       activity_rows.incomplete
+     from (
+       select study_set_id, session_id, mode, activity_at, completed_items, total_items, incomplete from incomplete_sessions
+       union all
+       select study_set_id, session_id, mode, activity_at, completed_items, total_items, incomplete from activity
+     ) activity_rows
+     join study_sets on study_sets.id = activity_rows.study_set_id
+     order by activity_rows.incomplete desc, activity_rows.activity_at desc nulls last`,
+    resolvedOwnerId ? [resolvedOwnerId] : [],
+  );
+
+  const candidates = result.rows.flatMap((row): ContinueStudyingCandidate[] => {
+    if (!row.activity_at) return [];
+    return [{
+      studySetId: row.study_set_id,
+      studySetTitle: row.study_set_title,
+      sessionId: row.incomplete ? row.session_id : null,
+      mode: row.mode,
+      lastStudiedAt: new Date(row.activity_at).toISOString(),
+      completedItems: row.completed_items,
+      totalItems: row.total_items,
+      incomplete: row.incomplete,
+      resumable: false,
+    }];
+  });
+
+  return selectContinueStudying(candidates);
 }
 
 export interface EnsureStudySetInput {

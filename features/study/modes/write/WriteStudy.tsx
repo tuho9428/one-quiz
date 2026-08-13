@@ -16,6 +16,7 @@ import {
   deterministicWriteGrader,
   type WriteGradingResult,
 } from "../../grading/write-grader";
+import { CodeBlock } from "../debug-code/CodeBlock";
 
 interface WriteSessionResult {
   grade: WriteGradingResult;
@@ -285,6 +286,11 @@ export function WriteStudy({
 
         <section className="rounded-[1.75rem] border border-[#d5e2df] bg-[#fbfdfc] p-5 shadow-[0_18px_60px_rgba(27,64,57,0.08)] dark:border-[#2d4440] dark:bg-[#182320] dark:shadow-none sm:p-8" aria-labelledby="write-question">
           <h2 id="write-question" className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{currentQuestion.question}</h2>
+          {currentQuestion.codeSnippet && (
+            <div className="mt-6">
+              <CodeBlock code={currentQuestion.codeSnippet} language={currentQuestion.language ?? "text"} />
+            </div>
+          )}
           <label htmlFor="write-answer" className="mt-7 block text-sm font-semibold text-[#55716a] dark:text-[#a8bdb7]">Your answer</label>
           <textarea
             id="write-answer"

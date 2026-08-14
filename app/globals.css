@@ -71,10 +71,14 @@ body {
 }
 
 .flashcard-code-scroll {
-  max-height: 17rem;
-  overflow-y: auto;
+  height: min(17rem, 45svh);
+  min-height: 0;
+  flex: none;
+  overflow-y: scroll;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .flashcard-card[data-has-code="true"] {
@@ -87,7 +91,7 @@ body {
   }
 
   .flashcard-code-scroll {
-    max-height: 15rem;
+    height: 15rem;
   }
 }
 

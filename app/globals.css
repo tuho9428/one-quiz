@@ -38,6 +38,7 @@ body {
 }
 
 .flashcard-card {
+  display: grid;
   position: relative;
   min-height: clamp(20rem, 52vw, 28rem);
   transform-style: preserve-3d;
@@ -49,15 +50,15 @@ body {
 }
 
 .flashcard-face {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
+  grid-area: 1 / 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  overflow: visible;
   border: 1px solid #d5e2df;
   border-radius: 1.75rem;
   background: #fbfdfc;
@@ -71,14 +72,8 @@ body {
 }
 
 .flashcard-code-scroll {
-  height: min(17rem, 45svh);
-  min-height: 0;
-  flex: none;
-  overflow-y: scroll;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  height: auto;
+  overflow: visible;
 }
 
 .flashcard-card[data-has-code="true"] {
@@ -91,7 +86,7 @@ body {
   }
 
   .flashcard-code-scroll {
-    height: 15rem;
+    height: auto;
   }
 }
 

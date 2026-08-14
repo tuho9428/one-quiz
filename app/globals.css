@@ -56,12 +56,39 @@ body {
   align-items: center;
   justify-content: center;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid #d5e2df;
   border-radius: 1.75rem;
   background: #fbfdfc;
   padding: 2rem 1.25rem;
   backface-visibility: hidden;
   box-shadow: 0 18px 60px rgb(27 64 57 / 8%);
+}
+
+.flashcard-card[data-has-code="true"] .flashcard-face {
+  justify-content: flex-start;
+}
+
+.flashcard-code-scroll {
+  max-height: 17rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.flashcard-card[data-has-code="true"] {
+  min-height: clamp(28rem, 82svh, 38rem);
+}
+
+@media (min-width: 640px) {
+  .flashcard-card[data-has-code="true"] {
+    min-height: clamp(24rem, 58vw, 32rem);
+  }
+
+  .flashcard-code-scroll {
+    max-height: 15rem;
+  }
 }
 
 .flashcard-back {

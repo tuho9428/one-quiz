@@ -359,7 +359,11 @@ export function FlashcardStudy({
 
         <section className="flex flex-col gap-5" aria-labelledby="flashcard-prompt">
           <div className={`flashcard-stage ${isRevealed ? "is-revealed" : ""}`}>
-            <div className="flashcard-card" data-revealed={isRevealed}>
+            <div
+              className="flashcard-card"
+              data-revealed={isRevealed}
+              data-has-code={Boolean(currentCard.codeSnippet)}
+            >
               <article className="flashcard-face flashcard-front" aria-hidden={isRevealed}>
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0f766e] dark:text-[#5eead4]">
                   Prompt
@@ -368,7 +372,7 @@ export function FlashcardStudy({
                   {currentCard.prompt}
                 </h2>
                 {currentCard.codeSnippet && (
-                  <div className="mt-7 w-full max-w-3xl text-left">
+                  <div className="flashcard-code-scroll mt-7 w-full max-w-3xl text-left">
                     <CodeBlock code={currentCard.codeSnippet} language={currentCard.language ?? "text"} />
                   </div>
                 )}

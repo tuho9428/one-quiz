@@ -150,6 +150,10 @@ export function FlashcardStudy({
     if (!isComplete) setIsRevealed(true);
   }, [isComplete]);
 
+  const showQuestion = useCallback(() => {
+    if (!isComplete) setIsRevealed(false);
+  }, [isComplete]);
+
   const goToCard = useCallback(
     (nextIndex: number) => {
       const boundedIndex = Math.max(0, Math.min(nextIndex, totalCards - 1));
@@ -393,6 +397,13 @@ export function FlashcardStudy({
                     {currentCard.explanation}
                   </p>
                 )}
+                <button
+                  type="button"
+                  onClick={showQuestion}
+                  className="mt-8 min-h-11 rounded-xl border border-[#b9cfca] bg-transparent px-5 py-2 text-sm font-semibold text-[#24564e] transition hover:bg-[#e8f1ee] active:translate-y-px dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"
+                >
+                  Show Question
+                </button>
               </article>
             </div>
           </div>

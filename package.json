@@ -9,6 +9,8 @@
     "import:react": "node scripts/import-react.mjs",
     "import:javascript": "node scripts/import-javascript.mjs javascript",
     "import:resume": "node scripts/import-javascript.mjs resume",
+    "import:resume-short-2": "node scripts/import-javascript.mjs resume-short-2",
+    "import:domain-specific": "node scripts/import-javascript.mjs domain-specific",
     "import:html": "node scripts/import-javascript.mjs html",
     "import:coding": "node scripts/import-javascript.mjs coding",
     "import:react-short": "node scripts/import-javascript.mjs react-short",

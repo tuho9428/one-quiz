@@ -1,0 +1,75 @@
+[
+  {
+    "type": "flashcard",
+    "question": "What business problem does IRIS solve?",
+    "answer": "IRIS helps internal Walmart teams manage seller cases and investigation workflows. It supports case management, seller research, guided workflows, and linked-account investigation.",
+    "tags": ["Walmart", "IRIS", "Domain", "Business Context", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How does Linked Accounts help users?",
+    "answer": "Linked Accounts helps investigators find relationships between seller accounts. Users can search sellers, explore connected accounts in a graph, and review seller details.",
+    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How does Linked Accounts get seller relationship data?",
+    "answer": "The React UI uses React Query to send an HTTP request to the backend. The request goes through Aurora Executor, which gets data from systems such as Salesforce, CMASS, and PRIMS. I worked on the frontend and API integration, not those backend services.",
+    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "Architecture", "API"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do Notes and Drafts work in Linked Accounts?",
+    "answer": "Users can create notes for a seller and upload files. They can publish a note for other agents or save it as a private draft. I implemented the UI, API integration, React Query mutations, cache updates, and custom hooks.",
+    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "Notes", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What custom hooks did you create?",
+    "answer": "I created custom hooks for Notes and Drafts in Linked Accounts. They handled reusable CRUD and React Query logic and kept the UI components simpler.",
+    "tags": ["Walmart", "IRIS", "Domain", "React", "Custom Hooks", "React Query"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you do on SOP Edit?",
+    "answer": "I implemented the SOP Edit frontend and API integration. I started with editing two text fields, then expanded it to all node fields, node CRUD, duplication, and edge editing. I used local React state and sent the updated graph to the API when the user clicked Save.",
+    "explanation": "Replace the old SOP Edit card with this one.",
+    "tags": ["Walmart", "IRIS", "Domain", "SOP Edit", "Ownership", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why did you keep SOP Edit changes locally before Save?",
+    "answer": "Users may make several changes before saving. I kept nodes and edges in local state so we did not call the API for every small change. When the user clicked Save, we sent the complete updated graph.",
+    "tags": ["Walmart", "IRIS", "Domain", "SOP Edit", "React State", "Architecture"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you do on UCM Help Articles?",
+    "answer": "I implemented the UI and API integration for Help Articles. Users can search articles, view details, bookmark articles, and switch between all articles and saved articles.",
+    "tags": ["Walmart", "IRIS", "Domain", "UCM", "API", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you improve performance in IRIS?",
+    "answer": "I used pagination for large tables, debounce for graph hover actions, lazy loading for the rich-text editor, and React Query caching to reduce unnecessary API calls.",
+    "tags": ["Walmart", "IRIS", "Domain", "Performance", "React", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you support production?",
+    "answer": "I was part of an on-call rotation. I used Grafana to check error rate and latency and OpenObserve to check logs. If I could fix the problem, I worked on the fix; otherwise, I shared my findings with the team.",
+    "tags": ["Walmart", "IRIS", "Domain", "Production", "On Call", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Tell me about a production issue you fixed.",
+    "answer": "One production deployment crashed because a dependency was missing. We rolled back first. I checked the production branch locally, did a clean install, found the missing dependency, fixed it, tested again, and then deployed the fix.",
+    "tags": ["Walmart", "IRIS", "Domain", "Production", "Debugging", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you avoid changing the user's workflow during the UI migration?",
+    "answer": "Some new system UI components looked different from the old components. For existing features, we kept the UI looking similar to reduce user impact. For new features, we used the new component style.",
+    "tags": ["Walmart", "IRIS", "Domain", "UI Migration", "User Experience"]
+  }
+]

@@ -74,6 +74,20 @@ const importConfig = {
     description: "Short Walmart IRIS resume and behavioral interview review covering project ownership, frontend architecture, collaboration, testing, deployment, and production support.",
     sourceKey: "resume-short-v1",
   },
+  "resume-short-2": {
+    dataFile: "resume-short-2.json",
+    setId: "resume-short-2",
+    title: "Resume Short 2",
+    description: "Focused Walmart IRIS interview flashcards covering Linked Accounts, SOP Edit, Help Articles, performance, production support, and UI migration.",
+    sourceKey: "resume-short-2-v1",
+  },
+  "domain-specific": {
+    dataFile: "domain-specific.json",
+    setId: "domain-specific",
+    title: "Domain Specific",
+    description: "Walmart IRIS domain-specific interview flashcards covering product workflows, deployment, production support, CI/CD, team structure, and users.",
+    sourceKey: "domain-specific-v1",
+  },
   "coding-short": {
     dataFile: "coding-short.json",
     setId: "coding-short",
@@ -90,7 +104,7 @@ const importConfig = {
   },
 };
 const config = importConfig[importName];
-if (!config) throw new Error(`Unknown import: ${importName}. Choose javascript, js-short, resume-short, coding-short, html-others-short, react-short, resume, html, or coding.`);
+if (!config) throw new Error(`Unknown import: ${importName}. Choose javascript, js-short, resume-short, resume-short-2, coding-short, html-others-short, react-short, resume, html, or coding.`);
 const dataPath = path.join(root, "data", config.dataFile);
 const parsed = parsePortableStudyJson(fs.readFileSync(dataPath, "utf8"));
 if (parsed.syntaxError || parsed.errors.length > 0) {

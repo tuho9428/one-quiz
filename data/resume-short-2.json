@@ -1,75 +1,182 @@
 [
   {
     "type": "flashcard",
+    "question": "Tell me about your most recent project.",
+    "answer": "My most recent project is Walmart MP-IRIS, an internal platform for case management, seller investigation, and operational workflows. I mainly worked on the frontend with React and TypeScript.",
+    "tags": ["Walmart", "IRIS", "Project Overview", "High Priority"]
+  },
+  {
+    "type": "flashcard",
     "question": "What business problem does IRIS solve?",
     "answer": "IRIS helps internal Walmart teams manage seller cases and investigation workflows. It supports case management, seller research, guided workflows, and linked-account investigation.",
-    "tags": ["Walmart", "IRIS", "Domain", "Business Context", "High Priority"]
+    "tags": ["Walmart", "IRIS", "Business Context", "High Priority"]
   },
   {
     "type": "flashcard",
-    "question": "How does Linked Accounts help users?",
-    "answer": "Linked Accounts helps investigators find relationships between seller accounts. Users can search sellers, explore connected accounts in a graph, and review seller details.",
-    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "High Priority"]
+    "question": "Who are the main users of IRIS?",
+    "answer": "The users are mainly internal Walmart users such as agents, analysts, investigators, supervisors, and admins.",
+    "tags": ["Walmart", "IRIS", "Users"]
   },
   {
     "type": "flashcard",
-    "question": "How does Linked Accounts get seller relationship data?",
-    "answer": "The React UI uses React Query to send an HTTP request to the backend. The request goes through Aurora Executor, which gets data from systems such as Salesforce, CMASS, and PRIMS. I worked on the frontend and API integration, not those backend services.",
-    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "Architecture", "API"]
+    "question": "What is UCM?",
+    "answer": "UCM stands for User Case Management. It is an agent-facing workspace for managing cases and related workflows.",
+    "tags": ["Walmart", "IRIS", "UCM"]
   },
   {
     "type": "flashcard",
-    "question": "How do Notes and Drafts work in Linked Accounts?",
-    "answer": "Users can create notes for a seller and upload files. They can publish a note for other agents or save it as a private draft. I implemented the UI, API integration, React Query mutations, cache updates, and custom hooks.",
-    "tags": ["Walmart", "IRIS", "Domain", "Linked Accounts", "Notes", "High Priority"]
+    "question": "What did you personally do in UCM?",
+    "answer": "I helped enhance UCM as it grew. I worked on case status, filters, case details, Quick Actions, escalation UI, Personal Queue, Help Articles, and other agent workflows.",
+    "tags": ["Walmart", "IRIS", "UCM", "Ownership", "High Priority"]
   },
   {
     "type": "flashcard",
-    "question": "What custom hooks did you create?",
-    "answer": "I created custom hooks for Notes and Drafts in Linked Accounts. They handled reusable CRUD and React Query logic and kept the UI components simpler.",
-    "tags": ["Walmart", "IRIS", "Domain", "React", "Custom Hooks", "React Query"]
+    "question": "What did you implement for UCM Help Articles?",
+    "answer": "I implemented the UI and API integration. Users can search articles, view details, bookmark articles, and switch between all articles and saved articles.",
+    "tags": ["Walmart", "IRIS", "UCM", "Ownership", "High Priority"]
   },
   {
     "type": "flashcard",
-    "question": "What did you do on SOP Edit?",
-    "answer": "I implemented the SOP Edit frontend and API integration. I started with editing two text fields, then expanded it to all node fields, node CRUD, duplication, and edge editing. I used local React state and sent the updated graph to the API when the user clicked Save.",
-    "explanation": "Replace the old SOP Edit card with this one.",
-    "tags": ["Walmart", "IRIS", "Domain", "SOP Edit", "Ownership", "High Priority"]
+    "question": "What was challenging about UCM?",
+    "answer": "UCM kept growing with new business requirements. The challenge was adding new features without breaking existing case-management behavior.",
+    "tags": ["Walmart", "IRIS", "UCM", "Challenges"]
   },
   {
     "type": "flashcard",
-    "question": "Why did you keep SOP Edit changes locally before Save?",
-    "answer": "Users may make several changes before saving. I kept nodes and edges in local state so we did not call the API for every small change. When the user clicked Save, we sent the complete updated graph.",
-    "tags": ["Walmart", "IRIS", "Domain", "SOP Edit", "React State", "Architecture"]
+    "question": "What is Seller Insights?",
+    "answer": "Seller Insights is an investigation area where users search for a seller and review seller-related information and Linked Accounts.",
+    "tags": ["Walmart", "IRIS", "Seller Insights"]
   },
   {
     "type": "flashcard",
-    "question": "What did you do on UCM Help Articles?",
-    "answer": "I implemented the UI and API integration for Help Articles. Users can search articles, view details, bookmark articles, and switch between all articles and saved articles.",
-    "tags": ["Walmart", "IRIS", "Domain", "UCM", "API", "High Priority"]
+    "question": "Did you build Seller Insights yourself?",
+    "answer": "No. I worked on Seller Insights with another frontend developer. We worked on different sections and features.",
+    "tags": ["Walmart", "IRIS", "Seller Insights", "Ownership"]
   },
   {
     "type": "flashcard",
-    "question": "How did you improve performance in IRIS?",
-    "answer": "I used pagination for large tables, debounce for graph hover actions, lazy loading for the rich-text editor, and React Query caching to reduce unnecessary API calls.",
-    "tags": ["Walmart", "IRIS", "Domain", "Performance", "React", "High Priority"]
+    "question": "What is Linked Accounts?",
+    "answer": "Linked Accounts helps users investigate relationships between seller accounts. Users can search sellers and explore connected accounts in graph and table views.",
+    "tags": ["Walmart", "IRIS", "Linked Accounts", "High Priority"]
   },
   {
     "type": "flashcard",
-    "question": "How did you support production?",
-    "answer": "I was part of an on-call rotation. I used Grafana to check error rate and latency and OpenObserve to check logs. If I could fix the problem, I worked on the fix; otherwise, I shared my findings with the team.",
-    "tags": ["Walmart", "IRIS", "Domain", "Production", "On Call", "High Priority"]
+    "question": "What did you personally do on Linked Accounts?",
+    "answer": "A basic React Flow graph already existed. I enhanced it with graph interactions, search, filtering, seller selection, table features, Notes and Drafts, file upload and preview, and navigation improvements.",
+    "tags": ["Walmart", "IRIS", "Linked Accounts", "Ownership", "High Priority"]
   },
   {
     "type": "flashcard",
-    "question": "Tell me about a production issue you fixed.",
-    "answer": "One production deployment crashed because a dependency was missing. We rolled back first. I checked the production branch locally, did a clean install, found the missing dependency, fixed it, tested again, and then deployed the fix.",
-    "tags": ["Walmart", "IRIS", "Domain", "Production", "Debugging", "High Priority"]
+    "question": "Did you choose React Flow for Linked Accounts?",
+    "answer": "No. React Flow had already been selected. My job was to extend the existing implementation and add functionality.",
+    "tags": ["Walmart", "Linked Accounts", "React Flow", "Ownership"]
   },
   {
     "type": "flashcard",
-    "question": "How did you avoid changing the user's workflow during the UI migration?",
-    "answer": "Some new system UI components looked different from the old components. For existing features, we kept the UI looking similar to reduce user impact. For new features, we used the new component style.",
-    "tags": ["Walmart", "IRIS", "Domain", "UI Migration", "User Experience"]
+    "question": "What did you personally implement for Linked Accounts Notes?",
+    "answer": "I implemented the UI, API integration, React Query mutations, cache and refetch behavior, and custom hooks. I also worked on drafts, publishing, file upload, and file preview.",
+    "tags": ["Walmart", "Linked Accounts", "Notes", "Ownership", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you implement on SOP Edit?",
+    "answer": "I implemented the SOP Edit frontend and API integration. I started with two editable fields, then expanded it to all node fields, node CRUD, duplication, and edge editing.",
+    "tags": ["Walmart", "IRIS", "SOP Edit", "Ownership", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why is SOP Edit needed?",
+    "answer": "The SOP graph contains workflow steps generated by AI. Users review the nodes and edges and correct information when needed.",
+    "tags": ["Walmart", "IRIS", "SOP Edit", "Business Context"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What is Guided Workflow?",
+    "answer": "Guided Workflow, or GWF, is a step-by-step workflow system for different case-management and operational processes.",
+    "tags": ["Walmart", "IRIS", "Guided Workflow"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you personally do in Guided Workflow?",
+    "answer": "I worked on reusable components and workflow features such as tabs, timelines, communication, search, validation, confirmation, pre-population, and conditional fields.",
+    "tags": ["Walmart", "IRIS", "Guided Workflow", "Ownership"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you do on Admin Feedback?",
+    "answer": "Admin Feedback already existed. I mainly improved filtering and table data presentation.",
+    "tags": ["Walmart", "IRIS", "Admin Feedback", "Ownership"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What did you do on Case Analysis?",
+    "answer": "I mainly worked on UI enhancement and refactoring. I replaced some raw HTML with standardized Walmart system UI components.",
+    "tags": ["Walmart", "IRIS", "Case Analysis"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Tell me about a challenging frontend migration.",
+    "answer": "I migrated existing UI to newer Walmart system components. The challenge was changing the implementation without changing the existing look and behavior too much.",
+    "tags": ["Walmart", "IRIS", "UI Migration", "Challenges", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Tell me about a disagreement with a teammate.",
+    "answer": "We disagreed about the styling during the UI migration. We agreed to keep existing features looking similar, while new features could use the new component style.",
+    "tags": ["Walmart", "Teamwork", "Behavioral", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why use React Query instead of Context for API data?",
+    "answer": "React Query is made for server state and handles fetching, caching, loading, errors, refetching, and invalidation. Context is better for shared client-side state.",
+    "tags": ["Walmart", "React Query", "Context", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you use GraphQL?",
+    "answer": "I used GraphQL from the frontend with queries and mutations, passed variables, handled responses, and used the returned data in React components.",
+    "tags": ["Walmart", "GraphQL", "API"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What was your testing strategy?",
+    "answer": "I used Jest to test important UI behavior, interactions, state changes, and expected results. I also ran tests and linting before creating a PR.",
+    "tags": ["Walmart", "Testing", "Jest", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Explain your development and deployment process.",
+    "answer": "I test locally and run linting and tests, then create a PR. I monitor CI, fix failures, get approvals, merge, monitor the deployment build, and validate the feature.",
+    "tags": ["Walmart", "CI/CD", "Deployment", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How do you investigate production issues?",
+    "answer": "I use Grafana to check metrics and OpenObserve to check logs. I find the affected service or cluster, investigate the error, and fix it or share my findings with the team.",
+    "tags": ["Walmart", "Production", "Grafana", "OpenObserve", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "How did you collaborate with a distributed team?",
+    "answer": "I worked in the U.S. Pacific time zone while many teammates were in India. We used overlap hours for discussions and Slack, Teams, Jira, and PR comments for other communication.",
+    "tags": ["Walmart", "Teamwork", "Distributed Team"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Did you build IRIS from scratch?",
+    "answer": "No. IRIS is a large platform built by multiple engineers and teams. I contributed to several frontend areas and worked on both new and existing features.",
+    "tags": ["Walmart", "IRIS", "Ownership"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Why are you leaving Walmart?",
+    "answer": "Walmart made a business decision to sunset the project, so my current assignment is ending. I am now looking for my next React or Front-End Developer opportunity.",
+    "tags": ["Walmart", "Career", "Behavioral", "High Priority"]
+  },
+  {
+    "type": "flashcard",
+    "question": "What are you looking for next?",
+    "answer": "I am looking for a frontend-focused role using React and TypeScript. I want to keep growing in reusable components, API integration, performance, testing, and large applications.",
+    "tags": ["Career", "React", "TypeScript", "Behavioral"]
   }
 ]

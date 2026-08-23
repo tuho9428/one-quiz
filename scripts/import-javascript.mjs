@@ -80,6 +80,7 @@ const importConfig = {
     title: "Resume Short 2",
     description: "Focused Walmart IRIS interview flashcards covering Linked Accounts, SOP Edit, Help Articles, performance, production support, and UI migration.",
     sourceKey: "resume-short-2-v1",
+    syncItems: true,
   },
   "domain-specific": {
     dataFile: "domain-specific.json",
@@ -87,6 +88,7 @@ const importConfig = {
     title: "Domain Specific",
     description: "Walmart IRIS domain-specific interview flashcards covering product workflows, deployment, production support, CI/CD, team structure, and users.",
     sourceKey: "domain-specific-v1",
+    syncItems: true,
   },
   "coding-short": {
     dataFile: "coding-short.json",
@@ -122,7 +124,7 @@ function sourceKeyForItem(item) {
 }
 
 const client = new pg.Client({ connectionString: process.env.POSTGRES_URL });
-const { setId, title, description, sourceKey } = config;
+const { setId, title, description, sourceKey, syncItems = false } = config;
 
 try {
   await client.connect();
@@ -183,6 +185,17 @@ try {
       tagsAssociated += 1;
       await client.query("insert into study_item_tags (study_item_id, tag_id) values ($1, $2) on conflict do nothing", [itemId, tag.rows[0].id]);
     }
+  }
+
+  if (syncItems) {
+    const currentSourceKeys = parsed.validItems.map(sourceKeyForItem);
+    const removed = await client.query(
+      `delete from study_items
+       where study_set_id = $1
+         and coalesce(source_key, '') <> all($2::text[])`,
+      [setId, currentSourceKeys],
+    );
+    console.log(`Stale questions removed: ${removed.rowCount ?? 0}`);
   }
 
   await client.query("commit");

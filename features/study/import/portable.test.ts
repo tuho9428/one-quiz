@@ -19,6 +19,25 @@ describe("portable study JSON", () => {
     expect(result.validItems[1]?.type).toBe("multiple-choice");
   });
 
+  it("accepts JSON copied from a Markdown code block", () => {
+    const result = parsePortableStudyJson("\uFEFF```json\n[{\"question\":\"What is React?\",\"answer\":\"A UI library\"}]\n```");
+
+    expect(result.syntaxError).toBeUndefined();
+    expect(result.validItems).toHaveLength(1);
+    expect(result.validItems[0]?.question).toBe("What is React?");
+  });
+
+  it("accepts a single card object", () => {
+    const result = parsePortableStudyJson(JSON.stringify({
+      type: "flashcard",
+      question: "What is React?",
+      answer: "A UI library",
+    }));
+
+    expect(result.errors).toEqual([]);
+    expect(result.validItems).toHaveLength(1);
+  });
+
   it("reports item-level validation errors without discarding valid items", () => {
     const result = parsePortableStudyJson(JSON.stringify([
       { question: "Valid", answer: "Answer" },

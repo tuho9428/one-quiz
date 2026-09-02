@@ -86,6 +86,18 @@ function cleanTags(value: unknown): { tags: string[]; error?: string } {
   };
 }
 
+function cleanJsonInput(input: string): string {
+  const lines = input.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+  const firstLine = lines[0]?.trim() ?? "";
+  const lastLine = lines.at(-1)?.trim() ?? "";
+
+  if (/^```(?:json)?$/i.test(firstLine) && lastLine === "```") {
+    return lines.slice(1, -1).join("\n").trim();
+  }
+
+  return lines.join("\n");
+}
+
 function validateItem(value: unknown): { normalized?: NormalizedPortableStudyItem; errors: string[] } {
   if (!isRecord(value)) return { errors: ["item must be an object"] };
 
@@ -179,9 +191,13 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
 export function parsePortableStudyJson(input: string): PortableParseResult {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(input);
+    parsed = JSON.parse(cleanJsonInput(input));
   } catch {
     return { syntaxError: "JSON syntax error: check commas, quotes, and brackets.", items: [], validItems: [], errors: [] };
+  }
+
+  if (isRecord(parsed) && ("question" in parsed || "answer" in parsed)) {
+    parsed = [parsed];
   }
 
   if (!Array.isArray(parsed)) {

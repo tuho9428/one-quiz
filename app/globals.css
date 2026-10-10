@@ -95,23 +95,6 @@ body {
 }
 
 @media (max-width: 639px) {
-  .flashcard-card[data-has-code="true"],
-  .flashcard-card[data-has-code="true"][data-revealed="true"] {
-    transform: none;
-    transform-style: flat;
-    transition: none;
-  }
-
-  .flashcard-card[data-has-code="true"] .flashcard-face {
-    transform: none;
-    backface-visibility: visible;
-  }
-
-  .flashcard-card[data-has-code="true"]:not([data-revealed="true"]) .flashcard-back,
-  .flashcard-card[data-has-code="true"][data-revealed="true"] .flashcard-front {
-    display: none;
-  }
-
   .flashcard-code-scroll {
     height: clamp(14rem, 55svh, 22rem);
     overflow-y: auto;

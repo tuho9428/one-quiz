@@ -35,9 +35,15 @@ export interface CodeBlockProps {
   code: string;
   language: string;
   label?: string;
+  tabIndex?: 0 | -1;
 }
 
-export function CodeBlock({ code, language, label }: CodeBlockProps) {
+export function CodeBlock({
+  code,
+  language,
+  label,
+  tabIndex = 0,
+}: CodeBlockProps) {
   const highlightedCode = useMemo(() => {
     const normalizedLanguage = languageName(language);
 
@@ -61,7 +67,11 @@ export function CodeBlock({ code, language, label }: CodeBlockProps) {
         <span>{label ?? "Code"}</span>
         <span className="font-mono uppercase tracking-[0.12em]">{language}</span>
       </div>
-      <pre className="code-block overflow-x-auto p-4 text-left text-[0.8rem] leading-6 text-[#d7f3ea] sm:p-5 sm:text-sm" tabIndex={0} aria-label={`${language} code` }>
+      <pre
+        className="code-block overflow-x-auto p-4 text-left text-[0.8rem] leading-6 text-[#d7f3ea] sm:p-5 sm:text-sm"
+        tabIndex={tabIndex}
+        aria-label={`${language} code`}
+      >
         <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
       </pre>
     </div>

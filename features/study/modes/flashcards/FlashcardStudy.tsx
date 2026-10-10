@@ -146,12 +146,8 @@ export function FlashcardStudy({
     cardStartedAt.current = Date.now();
   }, [currentIndex]);
 
-  const revealAnswer = useCallback(() => {
-    if (!isComplete) setIsRevealed(true);
-  }, [isComplete]);
-
-  const showQuestion = useCallback(() => {
-    if (!isComplete) setIsRevealed(false);
+  const flipCard = useCallback(() => {
+    if (!isComplete) setIsRevealed((revealed) => !revealed);
   }, [isComplete]);
 
   const goToCard = useCallback(
@@ -245,7 +241,7 @@ export function FlashcardStudy({
 
       if (event.code === "Space") {
         event.preventDefault();
-        revealAnswer();
+        flipCard();
         return;
       }
 
@@ -269,7 +265,7 @@ export function FlashcardStudy({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, goToCard, isComplete, rateCurrentCard, revealAnswer, totalCards]);
+  }, [currentIndex, flipCard, goToCard, isComplete, rateCurrentCard, totalCards]);
 
   if (!currentCard || totalCards === 0) {
     return (
@@ -364,9 +360,20 @@ export function FlashcardStudy({
         <section className="flex flex-col gap-5" aria-labelledby="flashcard-prompt">
           <div className={`flashcard-stage ${isRevealed ? "is-revealed" : ""}`}>
             <div
-              className="flashcard-card"
+              className="flashcard-card cursor-pointer rounded-[1.75rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e] dark:focus-visible:outline-[#5eead4]"
               data-revealed={isRevealed}
               data-has-code={Boolean(currentCard.codeSnippet)}
+              role="button"
+              tabIndex={0}
+              aria-label={isRevealed ? "Show question" : "Show answer"}
+              aria-pressed={isRevealed}
+              onClick={flipCard}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.repeat) {
+                  event.preventDefault();
+                  flipCard();
+                }
+              }}
             >
               <article className="flashcard-face flashcard-front" aria-hidden={isRevealed}>
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0f766e] dark:text-[#5eead4]">
@@ -377,11 +384,15 @@ export function FlashcardStudy({
                 </h2>
                 {currentCard.codeSnippet && (
                   <div className="flashcard-code-scroll mt-7 w-full max-w-3xl text-left">
-                    <CodeBlock code={currentCard.codeSnippet} language={currentCard.language ?? "text"} />
+                    <CodeBlock
+                      code={currentCard.codeSnippet}
+                      language={currentCard.language ?? "text"}
+                      tabIndex={-1}
+                    />
                   </div>
                 )}
                 <p className="mt-6 text-sm text-[#66807a] dark:text-[#94aea7]">
-                  Try to retrieve it before you reveal the answer.
+                  Recall it, then click the card to reveal the answer.
                 </p>
               </article>
 
@@ -397,26 +408,14 @@ export function FlashcardStudy({
                     {currentCard.explanation}
                   </p>
                 )}
-                <button
-                  type="button"
-                  onClick={showQuestion}
-                  className="mt-8 min-h-11 rounded-xl border border-[#b9cfca] bg-transparent px-5 py-2 text-sm font-semibold text-[#24564e] transition hover:bg-[#e8f1ee] active:translate-y-px dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"
-                >
-                  Show Question
-                </button>
+                <p className="mt-8 text-sm text-[#66807a] dark:text-[#94aea7]">
+                  Click the card to see the question again.
+                </p>
               </article>
             </div>
           </div>
 
-          {!isRevealed ? (
-            <button
-              type="button"
-              onClick={revealAnswer}
-              className="mx-auto min-h-12 w-full max-w-sm rounded-xl bg-[#0f766e] px-6 py-3 font-semibold text-white shadow-[0_8px_20px_rgba(15,118,110,0.18)] transition hover:bg-[#0b625b] active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e] dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4] dark:focus-visible:outline-[#5eead4]"
-            >
-              Show Answer
-            </button>
-          ) : (
+          {isRevealed && (
             <div className="rounded-2xl border border-[#d5e2df] bg-[#fbfdfc] p-4 dark:border-[#2d4440] dark:bg-[#182320]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -505,7 +504,7 @@ export function FlashcardStudy({
               : "Your progress is saved as you rate each card."}
           </p>
           <p className="font-mono text-xs tracking-wide">
-            Space reveal <span className="px-1">|</span> 1-4 rate <span className="px-1">|</span> Left/Right move
+            Space flip <span className="px-1">|</span> 1-4 rate <span className="px-1">|</span> Left/Right move
           </p>
         </div>
       </div>

@@ -53,11 +53,14 @@ function createBlankCard(index: number): ImportDraftCard {
 
 export function ImportStudyMaterial({ studySets, initialStudySetId, initialFormat }: { studySets: Array<{ id: string; title: string }>; initialStudySetId?: string; initialFormat?: SourceFormat }) {
   const router = useRouter();
+  const initialTargetStudySetId = studySets.some((studySet) => studySet.id === initialStudySetId)
+    ? initialStudySetId ?? ""
+    : "";
   const [sourceFormat, setSourceFormat] = useState<SourceFormat>(initialFormat ?? "markdown");
-  const [targetStudySetId, setTargetStudySetId] = useState(initialStudySetId ?? studySets[0]?.id ?? "");
+  const [targetStudySetId, setTargetStudySetId] = useState(initialTargetStudySetId);
   const [newSetTitle, setNewSetTitle] = useState("");
   const [newSetDescription, setNewSetDescription] = useState("");
-  const [showCreateSet, setShowCreateSet] = useState(false);
+  const [showCreateSet, setShowCreateSet] = useState(!initialTargetStudySetId);
   const [targetError, setTargetError] = useState<string | null>(null);
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [content, setContent] = useState("");
@@ -75,6 +78,12 @@ export function ImportStudyMaterial({ studySets, initialStudySetId, initialForma
   const recognizedCount = cards.filter((card) => !card.needsReview).length;
   const targetStudySet = studySets.find((studySet) => studySet.id === targetStudySetId);
 
+  function selectTargetStudySet(studySetId: string) {
+    setTargetStudySetId(studySetId);
+    setShowCreateSet(!studySetId);
+    setTargetError(null);
+  }
+
   async function createSet() {
     setIsCreatingSet(true);
     const result = await createStudySetAction({ title: newSetTitle, description: newSetDescription });
@@ -89,7 +98,7 @@ export function ImportStudyMaterial({ studySets, initialStudySetId, initialForma
   }
 
   if (sourceFormat === "json" && targetStudySet) {
-    return <JsonStudySetImport studySetId={targetStudySet.id} title={targetStudySet.title} backHref="/import" backLabel="Back to import formats" targetOptions={studySets} onTargetChange={setTargetStudySetId} onRequestCreateNew={() => setTargetStudySetId("")} />;
+    return <JsonStudySetImport studySetId={targetStudySet.id} title={targetStudySet.title} backHref="/import" backLabel="Back to import formats" targetOptions={studySets} onTargetChange={selectTargetStudySet} onRequestCreateNew={() => selectTargetStudySet("")} />;
   }
 
   function parseContent() {
@@ -211,7 +220,7 @@ export function ImportStudyMaterial({ studySets, initialStudySetId, initialForma
           <div className="flex flex-wrap gap-2" role="group" aria-label="Material format">
             {(["text", "markdown", "json"] as SourceFormat[]).map((format) => <button key={format} type="button" aria-pressed={sourceFormat === format} onClick={() => setSourceFormat(format)} className={`min-h-10 rounded-xl px-4 py-2 text-sm font-semibold capitalize transition active:translate-y-px ${sourceFormat === format ? "bg-[#e3f2ee] text-[#0f5f58] dark:bg-[#1f4039] dark:text-[#c4f4e8]" : "text-[#66807a] hover:bg-[#edf5f2] dark:text-[#94aea7] dark:hover:bg-[#20332f]"}`}>{format === "text" ? "Raw Text" : format === "markdown" ? "Markdown" : "JSON"}</button>)}
           </div>
-          <div className="mt-6 rounded-2xl bg-[#f3f8f6] p-4 dark:bg-[#1e2d2a]"><div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-semibold">Add to study set<select value={targetStudySetId} onChange={(event) => setTargetStudySetId(event.target.value)} className="mt-2 editor-input"><option value="">Choose a study set</option>{studySets.map((studySet) => <option key={studySet.id} value={studySet.id}>{studySet.title}</option>)}</select></label><div><p className="text-sm font-semibold">Need a new set?</p><button type="button" onClick={() => setShowCreateSet((value) => !value)} className="mt-2 text-sm font-semibold text-[#0f766e] hover:underline dark:text-[#5eead4]">{showCreateSet ? "Hide new set form" : "Create a new study set"}</button></div></div>{showCreateSet && <div className="mt-4 grid gap-3 border-t border-[#d5e2df] pt-4 dark:border-[#2d4440] sm:grid-cols-2"><label className="block text-sm font-semibold">New set title<input value={newSetTitle} onChange={(event) => setNewSetTitle(event.target.value)} className="mt-2 editor-input" /></label><label className="block text-sm font-semibold">Description<input value={newSetDescription} onChange={(event) => setNewSetDescription(event.target.value)} className="mt-2 editor-input" /></label><button type="button" onClick={createSet} disabled={isCreatingSet} className="min-h-11 rounded-xl bg-[#0f766e] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-[#2dd4bf] dark:text-[#10221f] sm:col-span-2">{isCreatingSet ? "Creating..." : "Create and continue"}</button></div>}{targetError && <p className="mt-3 text-sm font-semibold text-rose-700 dark:text-rose-300" role="alert">{targetError}</p>}</div>
+          <div className="mt-6 rounded-2xl bg-[#f3f8f6] p-4 dark:bg-[#1e2d2a]"><div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-semibold">Add to study set<select value={targetStudySetId} onChange={(event) => selectTargetStudySet(event.target.value)} className="mt-2 editor-input"><option value="">New study set</option>{studySets.map((studySet) => <option key={studySet.id} value={studySet.id}>{studySet.title}</option>)}</select></label><div><p className="text-sm font-semibold">Need a new set?</p><button type="button" onClick={() => { if (showCreateSet) setShowCreateSet(false); else selectTargetStudySet(""); }} className="mt-2 text-sm font-semibold text-[#0f766e] hover:underline dark:text-[#5eead4]">{showCreateSet ? "Hide new set form" : "Create a new study set"}</button></div></div>{showCreateSet && <div className="mt-4 grid gap-3 border-t border-[#d5e2df] pt-4 dark:border-[#2d4440] sm:grid-cols-2"><label className="block text-sm font-semibold">New set title<input value={newSetTitle} onChange={(event) => setNewSetTitle(event.target.value)} className="mt-2 editor-input" /></label><label className="block text-sm font-semibold">Description<input value={newSetDescription} onChange={(event) => setNewSetDescription(event.target.value)} className="mt-2 editor-input" /></label><button type="button" onClick={createSet} disabled={isCreatingSet} className="min-h-11 rounded-xl bg-[#0f766e] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-[#2dd4bf] dark:text-[#10221f] sm:col-span-2">{isCreatingSet ? "Creating..." : "Create and continue"}</button></div>}{targetError && <p className="mt-3 text-sm font-semibold text-rose-700 dark:text-rose-300" role="alert">{targetError}</p>}</div>
           {sourceFormat !== "json" && <><label htmlFor="study-material" className="mt-6 block text-sm font-semibold text-[#35645c] dark:text-[#b8e4da]">Paste {sourceFormat === "markdown" ? "Markdown" : "raw text"}</label><textarea id="study-material" value={content} onChange={(event) => setContent(event.target.value)} rows={16} className="mt-2 w-full resize-y rounded-2xl border border-[#c8d9d5] bg-[#fbfdfc] px-4 py-3 font-mono text-sm leading-7 text-[#16322e] outline-none transition placeholder:text-[#91aaa3] focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20 dark:border-[#3b5a54] dark:bg-[#1e2d2a] dark:text-[#edf5f1] dark:placeholder:text-[#66807a] dark:focus:border-[#5eead4]" placeholder={sourceFormat === "markdown" ? "## React useEffect\n\nAn effect synchronizes a component with an external system.\n\nQuestion: What causes a render loop?\nAnswer: An effect that updates a value in its own dependency list." : "Question: ...\nAnswer: ..."} /></>}
           {sourceFormat === "json" && !targetStudySet && <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"><p className="font-semibold">Choose a study set before importing JSON.</p><p className="mt-1">You can create a new set from the Study Sets page, then return here.</p></div>}
           {error && <p className="mt-3 text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>}

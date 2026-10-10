@@ -60,7 +60,7 @@ export default async function StudyModePage({
       studyContent = <WriteStudy questions={writeQuestions} title={studySet.title} />;
       break;
     case "rapid-recall":
-      studyContent = <RapidRecallStudy questions={writeQuestions} title={studySet.title} />;
+      studyContent = <RapidRecallStudy questions={writeQuestions} multipleChoiceQuestions={multipleChoice} title={studySet.title} />;
       break;
     case "smart-study":
       studyContent = <SmartStudy questions={sessionQuestions} title={studySet.title} />;

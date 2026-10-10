@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import {
   deleteStudyItemAction,
+  deleteStudySetAction,
   moveStudyItemAction,
   updateStudyItemAction,
   updateStudySetAction,
@@ -48,6 +49,9 @@ export function EditStudySet({ studySet }: { studySet: StudySetRecord }) {
   const [editorItemId, setEditorItemId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [isSavingSet, startSetTransition] = useTransition();
+  const [isDeletingSet, startDeleteSetTransition] = useTransition();
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
@@ -96,6 +100,23 @@ export function EditStudySet({ studySet }: { studySet: StudySetRecord }) {
       const result = await updateStudySetAction(studySet.id, { title, description: description ?? "" });
       showMessage(result.message);
       if (result.ok) router.refresh();
+    });
+  }
+
+  function deleteSet() {
+    if (deleteConfirmation !== studySet.title) {
+      showMessage("The set title did not match. Nothing was deleted.");
+      return;
+    }
+
+    startDeleteSetTransition(async () => {
+      const result = await deleteStudySetAction(studySet.id);
+      if (!result.ok) {
+        showMessage(result.message);
+        return;
+      }
+      router.push("/sets");
+      router.refresh();
     });
   }
 
@@ -203,6 +224,56 @@ export function EditStudySet({ studySet }: { studySet: StudySetRecord }) {
             {studySet.questions.length === 0 && <div className="rounded-xl border border-dashed border-[#b9cfca] p-6 text-center dark:border-[#3b5a54]"><p className="font-semibold">No study items yet.</p><p className="mt-1 text-sm text-[#66807a] dark:text-[#a8bdb7]">Add your first question or import study material.</p><div className="mt-4 flex flex-col justify-center gap-3 sm:flex-row"><button type="button" onClick={(event) => openEditor("new", event.currentTarget)} className="min-h-11 rounded-xl bg-[#0f766e] px-4 py-3 text-sm font-semibold text-white dark:bg-[#2dd4bf] dark:text-[#10221f]">+ Add First Item</button><Link href={`/sets/${studySet.id}/items/import`} className="min-h-11 rounded-xl border border-[#b9cfca] px-4 py-3 text-sm font-semibold text-[#24564e] dark:border-[#3b5a54] dark:text-[#b8e4da]">Import Material</Link></div></div>}
           </div>
           {filteredItems.length > 0 && <div className="mt-5 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between"><p className="text-[#66807a] dark:text-[#a8bdb7]">Page {safeCurrentPage} of {pageCount}</p><Pagination currentPage={safeCurrentPage} totalPages={pageCount} onPageChange={setCurrentPage} ariaLabel="Edit study item pages" /></div>}
+        </section>
+
+        <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50/60 p-5 dark:border-rose-900/70 dark:bg-rose-950/20 sm:p-6" aria-labelledby="danger-heading">
+          <h2 id="danger-heading" className="text-xl font-semibold text-rose-900 dark:text-rose-100">Delete study set</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-rose-800 dark:text-rose-200">
+            Permanently delete this set, all study items, attempts, sessions, and learning progress. This cannot be undone.
+          </p>
+          {showDeleteConfirmation ? (
+            <div className="mt-5 max-w-xl rounded-xl border border-rose-200 bg-white p-4 dark:border-rose-900 dark:bg-[#182320]">
+              <label htmlFor="delete-set-confirmation" className="block text-sm font-semibold text-rose-900 dark:text-rose-100">
+                Type <span className="font-mono">{studySet.title}</span> to confirm
+              </label>
+              <input
+                id="delete-set-confirmation"
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                autoComplete="off"
+                className="editor-input mt-2"
+              />
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={deleteSet}
+                  disabled={isDeletingSet || deleteConfirmation !== studySet.title}
+                  className="min-h-11 rounded-xl bg-rose-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-800 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 dark:bg-rose-600 dark:hover:bg-rose-500"
+                >
+                  {isDeletingSet ? "Deleting set..." : "Permanently delete set"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteConfirmation(false);
+                    setDeleteConfirmation("");
+                  }}
+                  disabled={isDeletingSet}
+                  className="min-h-11 rounded-xl border border-[#b9cfca] px-5 py-3 text-sm font-semibold text-[#24564e] transition hover:bg-[#edf5f2] disabled:opacity-50 dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirmation(true)}
+              className="mt-5 min-h-11 rounded-xl border border-rose-300 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 active:translate-y-px dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200 dark:hover:bg-rose-950/60"
+            >
+              Delete this set
+            </button>
+          )}
         </section>
 
         <StudyItemEditorDialog

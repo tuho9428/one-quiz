@@ -331,6 +331,22 @@ export async function updateStudySet(
   return updated;
 }
 
+export async function deleteStudySet(
+  studySetId: string,
+  ownerId?: string | null,
+): Promise<void> {
+  const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
+  const result = await pool.query(
+    `delete from study_sets
+     where id = $1 and ${resolvedOwnerId ? "owner_id = $2" : "owner_id is null"}`,
+    resolvedOwnerId ? [studySetId, resolvedOwnerId] : [studySetId],
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Study set not found or not accessible");
+  }
+}
+
 export function sourceKeyForItem(item: NormalizedPortableStudyItem): string {
   const canonical = JSON.stringify({
     type: item.type,

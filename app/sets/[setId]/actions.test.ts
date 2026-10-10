@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const repository = vi.hoisted(() => ({
   createStudyItem: vi.fn(),
   deleteStudyItem: vi.fn(),
+  deleteStudySet: vi.fn(),
   ensureStudySet: vi.fn(),
   exportStudySet: vi.fn(),
   importStudyItems: vi.fn(),
@@ -14,7 +15,7 @@ const repository = vi.hoisted(() => ({
 vi.mock("@/lib/study/repository", () => repository);
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-import { createStudyItemAction, updateStudyItemAction } from "./actions";
+import { createStudyItemAction, deleteStudySetAction, updateStudyItemAction } from "./actions";
 
 describe("study item server actions", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -85,5 +86,21 @@ describe("study item server actions", () => {
 
     expect(result).toEqual({ ok: false, message: 'missing "question"' });
     expect(repository.createStudyItem).not.toHaveBeenCalled();
+  });
+
+  it("deletes the requested study set", async () => {
+    const result = await deleteStudySetAction("set-1");
+
+    expect(result).toEqual({ ok: true, message: "Study set deleted." });
+    expect(repository.deleteStudySet).toHaveBeenCalledWith("set-1");
+  });
+
+  it("returns a safe error when a study set cannot be deleted", async () => {
+    repository.deleteStudySet.mockRejectedValueOnce(new Error("Study set not found or not accessible"));
+
+    await expect(deleteStudySetAction("set-2")).resolves.toEqual({
+      ok: false,
+      message: "Study set not found or not accessible",
+    });
   });
 });

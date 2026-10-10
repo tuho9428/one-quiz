@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   createStudyAttemptFromGrade,
 } from "../../domain/engine";
-import type { StudyAttempt, WriteQuestion } from "../../domain/types";
+import type { MultipleChoiceQuestion, StudyAttempt, WriteQuestion } from "../../domain/types";
 import { CodeBlock } from "../debug-code/CodeBlock";
 import {
   applyAttemptToStats,
@@ -18,6 +18,10 @@ import {
   type WriteGradingResult,
 } from "../../grading/write-grader";
 import {
+  prepareMultipleChoiceSession,
+  type MultipleChoiceOption,
+} from "../multiple-choice/session";
+import {
   formatRapidRecallDuration,
   RAPID_RECALL_DURATIONS,
   shuffleRapidRecallQuestions,
@@ -27,6 +31,8 @@ import {
 interface RapidRecallFeedback {
   outcome: WriteGradingResult["outcome"];
 }
+
+type RapidRecallResponseMode = "write" | "multiple-choice";
 
 function createAttemptId(): string {
   return globalThis.crypto?.randomUUID() ?? `attempt-${Date.now()}`;
@@ -79,16 +85,23 @@ function createRapidRecallAttempt(
 
 export interface RapidRecallStudyProps {
   questions: WriteQuestion[];
+  multipleChoiceQuestions?: MultipleChoiceQuestion[];
   title?: string;
 }
 
 export function RapidRecallStudy({
   questions,
+  multipleChoiceQuestions = [],
   title = "Active recall foundations",
 }: RapidRecallStudyProps) {
   const [selectedDuration, setSelectedDuration] =
     useState<RapidRecallDuration>(60);
+  const [responseMode, setResponseMode] =
+    useState<RapidRecallResponseMode>("write");
   const [sessionQuestions, setSessionQuestions] = useState<WriteQuestion[]>([]);
+  const [choiceOptionsByQuestion, setChoiceOptionsByQuestion] = useState<
+    Record<string, MultipleChoiceOption[]>
+  >({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [attempts, setAttempts] = useState<StudyAttempt[]>([]);
@@ -111,6 +124,17 @@ export function RapidRecallStudy({
   const feedbackTimeoutRef = useRef<number | null>(null);
 
   const currentQuestion = sessionQuestions[currentIndex];
+  const multipleChoiceByQuestion = useMemo(
+    () => new Map(multipleChoiceQuestions.map((question) => [question.id, question])),
+    [multipleChoiceQuestions],
+  );
+  const currentMultipleChoiceQuestion = currentQuestion
+    ? multipleChoiceByQuestion.get(currentQuestion.id)
+    : undefined;
+  const currentChoiceOptions = useMemo(
+    () => currentQuestion ? choiceOptionsByQuestion[currentQuestion.id] ?? [] : [],
+    [choiceOptionsByQuestion, currentQuestion],
+  );
   const clearFeedbackTimeout = useCallback(() => {
     if (feedbackTimeoutRef.current !== null) {
       window.clearTimeout(feedbackTimeoutRef.current);
@@ -163,8 +187,16 @@ export function RapidRecallStudy({
   }, []);
 
   useEffect(() => {
-    if (!isRunning || isComplete || feedback || isChecking) return focusInput();
-  }, [currentIndex, feedback, focusInput, isChecking, isComplete, isRunning]);
+    if (
+      responseMode === "write" &&
+      isRunning &&
+      !isComplete &&
+      !feedback &&
+      !isChecking
+    ) {
+      return focusInput();
+    }
+  }, [currentIndex, feedback, focusInput, isChecking, isComplete, isRunning, responseMode]);
 
   const answerStats = useMemo(() => {
     const skipped = attempts.filter((attempt) => attempt.skipped).length;
@@ -297,6 +329,55 @@ export function RapidRecallStudy({
     scheduleNextQuestion();
   }, [answer, currentQuestion, feedback, isChecking, recordAttempt, scheduleNextQuestion]);
 
+  const selectMultipleChoiceAnswer = useCallback(
+    (selectedAnswer: string) => {
+      if (
+        !runningRef.current ||
+        !currentQuestion ||
+        !currentMultipleChoiceQuestion ||
+        feedback ||
+        isChecking
+      ) {
+        return;
+      }
+
+      const isCorrect = selectedAnswer === currentMultipleChoiceQuestion.correctAnswer;
+      const grade: WriteGradingResult = {
+        outcome: isCorrect ? "correct" : "incorrect",
+        score: isCorrect ? 100 : 0,
+        expectedAnswer: currentQuestion.expectedAnswer,
+        includedConcepts: isCorrect ? currentQuestion.importantKeywords : [],
+        missedConcepts: isCorrect ? [] : currentQuestion.importantKeywords,
+        explanation: currentQuestion.explanation,
+        grader: "deterministic",
+      };
+      const responseTimeMs =
+        questionStartedAtRef.current === null
+          ? undefined
+          : Math.max(0, Date.now() - questionStartedAtRef.current);
+
+      recordAttempt(
+        createRapidRecallAttempt(
+          currentQuestion,
+          selectedAnswer,
+          grade,
+          responseTimeMs,
+        ),
+      );
+      setAnswer(selectedAnswer);
+      setFeedback({ outcome: grade.outcome });
+      scheduleNextQuestion();
+    },
+    [
+      currentMultipleChoiceQuestion,
+      currentQuestion,
+      feedback,
+      isChecking,
+      recordAttempt,
+      scheduleNextQuestion,
+    ],
+  );
+
   const skipQuestion = useCallback(() => {
     if (!runningRef.current || !currentQuestion || feedback || isChecking) return;
 
@@ -316,8 +397,26 @@ export function RapidRecallStudy({
   }, [advanceQuestion, currentQuestion, feedback, isChecking, recordAttempt]);
 
   const startSession = useCallback(
-    (nextQuestions: WriteQuestion[], duration = selectedDuration) => {
-      if (nextQuestions.length === 0) return;
+    (
+      nextQuestions: WriteQuestion[],
+      duration = selectedDuration,
+      nextResponseMode = responseMode,
+    ) => {
+      const availableQuestions = nextResponseMode === "multiple-choice"
+        ? nextQuestions.filter((question) => multipleChoiceByQuestion.has(question.id))
+        : nextQuestions;
+      if (availableQuestions.length === 0) return;
+
+      const nextChoiceOptions = nextResponseMode === "multiple-choice"
+        ? Object.fromEntries(
+            prepareMultipleChoiceSession(
+              availableQuestions.flatMap((question) => {
+                const multipleChoiceQuestion = multipleChoiceByQuestion.get(question.id);
+                return multipleChoiceQuestion ? [multipleChoiceQuestion] : [];
+              }),
+            ).map(({ question, options }) => [question.id, options]),
+          )
+        : {};
 
       clearFeedbackTimeout();
       const now = Date.now();
@@ -329,7 +428,9 @@ export function RapidRecallStudy({
       runningRef.current = true;
 
       setSelectedDuration(duration);
-      setSessionQuestions(shuffleRapidRecallQuestions(nextQuestions));
+      setResponseMode(nextResponseMode);
+      setSessionQuestions(shuffleRapidRecallQuestions(availableQuestions));
+      setChoiceOptionsByQuestion(nextChoiceOptions);
       setCurrentIndex(0);
       setAnswer("");
       setAttempts([]);
@@ -339,7 +440,7 @@ export function RapidRecallStudy({
       setIsComplete(false);
       setIsChecking(false);
       setIsRunning(true);
-    }, [clearFeedbackTimeout, selectedDuration]);
+    }, [clearFeedbackTimeout, multipleChoiceByQuestion, responseMode, selectedDuration]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -348,12 +449,22 @@ export function RapidRecallStudy({
       if (event.key === "Escape") {
         event.preventDefault();
         skipQuestion();
+        return;
+      }
+
+      if (responseMode === "multiple-choice") {
+        const optionIndex = Number(event.key) - 1;
+        const option = currentChoiceOptions[optionIndex];
+        if (option) {
+          event.preventDefault();
+          selectMultipleChoiceAnswer(option.text);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRunning, skipQuestion]);
+  }, [currentChoiceOptions, isRunning, responseMode, selectMultipleChoiceAnswer, skipQuestion]);
 
   useEffect(() => clearFeedbackTimeout, [clearFeedbackTimeout]);
 
@@ -376,7 +487,34 @@ export function RapidRecallStudy({
           </header>
 
           <section className="rounded-[1.75rem] border border-[#d5e2df] bg-[#fbfdfc] p-5 shadow-[0_18px_60px_rgba(27,64,57,0.08)] dark:border-[#2d4440] dark:bg-[#182320] dark:shadow-none sm:p-8">
-            <p className="text-sm font-semibold text-[#55716a] dark:text-[#a8bdb7]">Choose a sprint length</p>
+            <p className="text-sm font-semibold text-[#55716a] dark:text-[#a8bdb7]">Choose how to answer</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setResponseMode("write")}
+                aria-pressed={responseMode === "write"}
+                className={`min-h-24 rounded-xl border p-4 text-left transition active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] dark:focus-visible:outline-[#5eead4] ${responseMode === "write" ? "border-[#0f766e] bg-[#e7f3ef] text-[#0f5f58] ring-2 ring-[#0f766e]/15 dark:border-[#5eead4] dark:bg-[#203a34] dark:text-[#c3f4ea] dark:ring-[#5eead4]/15" : "border-[#cfdfdb] bg-[#f6faf8] text-[#55716a] hover:border-[#8bb8ad] dark:border-[#36514b] dark:bg-[#1d2d2a] dark:text-[#a8bdb7] dark:hover:border-[#5e9e90]"}`}
+              >
+                <span className="block font-semibold">Write</span>
+                <span className="mt-1 block text-sm font-normal opacity-80">Type each answer from memory.</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setResponseMode("multiple-choice")}
+                disabled={multipleChoiceQuestions.length === 0}
+                aria-pressed={responseMode === "multiple-choice"}
+                className={`min-h-24 rounded-xl border p-4 text-left transition active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:cursor-not-allowed disabled:opacity-45 dark:focus-visible:outline-[#5eead4] ${responseMode === "multiple-choice" ? "border-[#0f766e] bg-[#e7f3ef] text-[#0f5f58] ring-2 ring-[#0f766e]/15 dark:border-[#5eead4] dark:bg-[#203a34] dark:text-[#c3f4ea] dark:ring-[#5eead4]/15" : "border-[#cfdfdb] bg-[#f6faf8] text-[#55716a] hover:border-[#8bb8ad] dark:border-[#36514b] dark:bg-[#1d2d2a] dark:text-[#a8bdb7] dark:hover:border-[#5e9e90]"}`}
+              >
+                <span className="block font-semibold">Multiple Choice</span>
+                <span className="mt-1 block text-sm font-normal opacity-80">
+                  {multipleChoiceQuestions.length > 0
+                    ? `Choose from answers for ${multipleChoiceQuestions.length} eligible questions.`
+                    : "No questions have enough valid answer choices."}
+                </span>
+              </button>
+            </div>
+
+            <p className="mt-7 text-sm font-semibold text-[#55716a] dark:text-[#a8bdb7]">Choose a sprint length</p>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {RAPID_RECALL_DURATIONS.map((duration) => (
                 <button
@@ -392,12 +530,14 @@ export function RapidRecallStudy({
             </div>
             <button
               type="button"
-              onClick={() => startSession(questions)}
+              onClick={() => startSession(questions, selectedDuration, responseMode)}
               className="mt-6 min-h-12 w-full rounded-xl bg-[#0f766e] px-5 py-3 font-semibold text-white transition hover:bg-[#0b625b] active:translate-y-px dark:bg-[#2dd4bf] dark:text-[#10221f] dark:hover:bg-[#5eead4]"
             >
-              Start Rapid Recall
+              Start {responseMode === "write" ? "Write" : "Multiple Choice"} Sprint
             </button>
-            <p className="mt-4 text-center text-sm text-[#66807a] dark:text-[#94aea7]">During the sprint: Enter submits, Escape skips.</p>
+            <p className="mt-4 text-center text-sm text-[#66807a] dark:text-[#94aea7]">
+              During the sprint: {responseMode === "write" ? "Enter submits" : "1-4 selects"}, Escape skips.
+            </p>
           </section>
         </div>
       </main>
@@ -486,35 +626,67 @@ export function RapidRecallStudy({
             </div>
           )}
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <input
-              ref={inputRef}
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.nativeEvent.isComposing) return;
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void submitAnswer();
-                }
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  skipQuestion();
-                }
-              }}
-              disabled={Boolean(feedback) || isChecking}
-              autoComplete="off"
-              autoCapitalize="sentences"
-              placeholder="Type your answer, then press Enter"
-              className="min-h-12 min-w-0 flex-1 rounded-xl border border-[#b9cfca] bg-[#f8fbfa] px-4 py-3 text-base text-[#16322e] outline-none transition placeholder:text-[#87a19a] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/10 disabled:cursor-default disabled:opacity-70 dark:border-[#3b5a54] dark:bg-[#1b2a27] dark:text-[#edf5f1] dark:placeholder:text-[#76918a] dark:focus:border-[#5eead4] dark:focus:ring-[#5eead4]/10"
-            />
-            <button type="button" onClick={skipQuestion} disabled={Boolean(feedback) || isChecking} className="min-h-12 rounded-xl border border-[#b9cfca] px-5 py-3 font-semibold text-[#24564e] transition hover:bg-[#edf5f2] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Skip</button>
-          </div>
+          {responseMode === "write" ? (
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <input
+                ref={inputRef}
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.nativeEvent.isComposing) return;
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void submitAnswer();
+                  }
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    skipQuestion();
+                  }
+                }}
+                disabled={Boolean(feedback) || isChecking}
+                autoComplete="off"
+                autoCapitalize="sentences"
+                placeholder="Type your answer, then press Enter"
+                className="min-h-12 min-w-0 flex-1 rounded-xl border border-[#b9cfca] bg-[#f8fbfa] px-4 py-3 text-base text-[#16322e] outline-none transition placeholder:text-[#87a19a] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/10 disabled:cursor-default disabled:opacity-70 dark:border-[#3b5a54] dark:bg-[#1b2a27] dark:text-[#edf5f1] dark:placeholder:text-[#76918a] dark:focus:border-[#5eead4] dark:focus:ring-[#5eead4]/10"
+              />
+              <button type="button" onClick={skipQuestion} disabled={Boolean(feedback) || isChecking} className="min-h-12 rounded-xl border border-[#b9cfca] px-5 py-3 font-semibold text-[#24564e] transition hover:bg-[#edf5f2] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Skip</button>
+            </div>
+          ) : (
+            <div className="mt-7">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {currentChoiceOptions.map((option, index) => {
+                  const isSelected = answer === option.text;
+                  const isCorrect = option.text === currentMultipleChoiceQuestion?.correctAnswer;
+                  const feedbackClass = feedback
+                    ? isCorrect
+                      ? "border-emerald-400 bg-emerald-50 text-emerald-950 dark:border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-100"
+                      : isSelected
+                        ? "border-rose-400 bg-rose-50 text-rose-950 dark:border-rose-600 dark:bg-rose-950/50 dark:text-rose-100"
+                        : "border-[#d5e2df] bg-[#f3f8f6] text-[#66807a] opacity-60 dark:border-[#2d4440] dark:bg-[#1e2d2a] dark:text-[#94aea7]"
+                    : "border-[#b9cfca] bg-[#f8fbfa] text-[#24564e] hover:border-[#0f766e] hover:bg-[#edf5f2] dark:border-[#3b5a54] dark:bg-[#1b2a27] dark:text-[#b8e4da] dark:hover:border-[#5eead4] dark:hover:bg-[#20332f]";
+
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => selectMultipleChoiceAnswer(option.text)}
+                      disabled={Boolean(feedback) || isChecking}
+                      className={`min-h-16 rounded-xl border px-4 py-3 text-left font-semibold transition active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:cursor-default dark:focus-visible:outline-[#5eead4] ${feedbackClass}`}
+                    >
+                      <span className="mr-2 font-mono text-xs opacity-60">{index + 1}</span>
+                      {option.text}
+                    </button>
+                  );
+                })}
+              </div>
+              <button type="button" onClick={skipQuestion} disabled={Boolean(feedback) || isChecking} className="mt-3 min-h-11 w-full rounded-xl border border-[#b9cfca] px-5 py-2 text-sm font-semibold text-[#24564e] transition hover:bg-[#edf5f2] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#3b5a54] dark:text-[#b8e4da] dark:hover:bg-[#20332f]">Skip</button>
+            </div>
+          )}
 
           {feedback && <div className={`mt-5 rounded-xl border px-4 py-3 text-lg font-semibold ${getFeedbackClass(feedback.outcome)}`} aria-live="assertive">{getFeedbackLabel(feedback.outcome)}</div>}
         </section>
 
-        <div className="flex items-center justify-between text-sm text-[#66807a] dark:text-[#94aea7]"><p>Enter submit <span className="px-1">|</span> Escape skip</p><p className="font-mono text-xs">{answerStats.currentStreak} current streak</p></div>
+        <div className="flex items-center justify-between text-sm text-[#66807a] dark:text-[#94aea7]"><p>{responseMode === "write" ? "Enter submit" : "1-4 select"} <span className="px-1">|</span> Escape skip</p><p className="font-mono text-xs">{answerStats.currentStreak} current streak</p></div>
       </div>
     </main>
   );

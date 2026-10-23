@@ -339,6 +339,8 @@ export function canStudyItemInMode(
   allItems: StudyQuestion[] = [question],
 ): boolean {
   switch (mode) {
+    case "exact-typing":
+      return question.type === "verbatim" && question.sentences.length > 0;
     case "multiple-choice":
       return canUseInMultipleChoice(question, allItems);
     case "debug-code":
@@ -357,6 +359,7 @@ export function getEligibleModes(question: StudyQuestion, allItems: StudyQuestio
   const modes: StudyPresentationMode[] = ["flashcard", "write", "rapid-recall", "smart-study", "weak-areas", "exam"];
   if (canUseInMultipleChoice(question, allItems)) modes.push("multiple-choice");
   if (hasCodeCapability(question)) modes.push("debug-code");
+  if (canStudyItemInMode(question, "exact-typing")) modes.push("exact-typing");
   return modes;
 }
 
@@ -364,14 +367,16 @@ export function getQuestionText(question: StudyQuestion): string {
   switch (question.type) {
     case "flashcard": return question.prompt;
     case "multiple-choice":
-    case "write": return question.question;
+    case "write":
+    case "verbatim": return question.question;
     case "debug-code": return question.problemStatement;
   }
 }
 
 export function getAnswerText(question: StudyQuestion): string {
   switch (question.type) {
-    case "flashcard": return question.answer;
+    case "flashcard":
+    case "verbatim": return question.answer;
     case "multiple-choice": return question.correctAnswer;
     case "write": return question.expectedAnswer;
     case "debug-code": return question.expectedExplanation;

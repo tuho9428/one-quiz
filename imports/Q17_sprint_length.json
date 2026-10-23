@@ -1,0 +1,17 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q17: How long is your sprint?",
+    "answer": "Two weeks",
+    "explanation": "The IRIS team worked in two-week sprints.",
+    "tags": ["Marketing Interview", "Q17", "Exact Fact", "Sprint"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q17: Type the complete answer exactly.",
+    "answer": "We worked in two-week sprints.",
+    "memoryHook": "Two weeks",
+    "chunks": ["We worked", "in two-week sprints"],
+    "tags": ["Marketing Interview", "Q17", "Complete Answer", "Verbatim"]
+  }
+]

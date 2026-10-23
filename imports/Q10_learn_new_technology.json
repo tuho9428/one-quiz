@@ -1,0 +1,49 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q10: What is the answer structure for learning a new technology?",
+    "answer": "Walmart design system; existing React foundation; internal docs and examples; small experiments; UI migration; enterprise standards matter",
+    "explanation": "Use these ideas in this order to reconstruct the answer.",
+    "tags": ["Marketing Interview", "Q10", "Bullet Recall", "Learning"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q10: Type the opening sentence exactly.",
+    "answer": "When I joined IRIS, one of the first things I had to learn was Walmart's internal UI component library and design standards.",
+    "memoryHook": "Joined IRIS; Walmart design system",
+    "chunks": ["When I joined IRIS", "one of the first things I had to learn", "was Walmart's internal UI component library and design standards"],
+    "tags": ["Marketing Interview", "Q10", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q10: Type the knowledge-gap sentence exactly.",
+    "answer": "I already had experience with React, CSS, and Tailwind, but Walmart used its own components, design tokens, spacing rules, and styling patterns.",
+    "memoryHook": "React foundation; Walmart-specific standards",
+    "chunks": ["I already had experience with React, CSS, and Tailwind", "but Walmart used its own components", "design tokens, spacing rules, and styling patterns"],
+    "tags": ["Marketing Interview", "Q10", "Context", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q10: Type the learning approach exactly.",
+    "answer": "I reviewed existing components, read the internal documentation, compared working examples with the Figma designs, and tested the components in smaller changes first.",
+    "memoryHook": "Components; docs; Figma; small tests",
+    "chunks": ["I reviewed existing components", "read the internal documentation", "compared working examples with the Figma designs", "and tested the components in smaller changes first"],
+    "tags": ["Marketing Interview", "Q10", "Action", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q10: Type the result sentence exactly.",
+    "answer": "After a short time, I became comfortable and consistent with Walmart's design system and used it across multiple IRIS features.",
+    "memoryHook": "Comfortable; consistent; multiple features",
+    "chunks": ["After a short time", "I became comfortable and consistent with Walmart's design system", "and used it across multiple IRIS features"],
+    "tags": ["Marketing Interview", "Q10", "Result", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q10: Type the learning sentence exactly.",
+    "answer": "I learned that in a large enterprise application, understanding the company's standards, architecture, and development patterns is just as important as knowing the framework.",
+    "memoryHook": "Enterprise standards; architecture; patterns; framework",
+    "chunks": ["I learned that in a large enterprise application", "understanding the company's standards, architecture, and development patterns", "is just as important as knowing the framework"],
+    "tags": ["Marketing Interview", "Q10", "Learning", "Verbatim"]
+  }
+]

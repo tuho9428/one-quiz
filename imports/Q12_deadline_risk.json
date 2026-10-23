@@ -1,0 +1,49 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q12: What is the answer structure for a deadline at risk?",
+    "answer": "Linked Accounts; downstream API changed; identify blocker; estimate impact; communicate early; continue unblocked work; integrate and retest; meet deadline",
+    "explanation": "Use these ideas in this order to reconstruct the answer.",
+    "tags": ["Marketing Interview", "Q12", "Bullet Recall", "Deadline"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q12: Type the opening sentence exactly.",
+    "answer": "During the Linked Accounts project, we were at risk of missing the release date because a downstream team's API contract changed close to release.",
+    "memoryHook": "Linked Accounts; API contract change; release risk",
+    "chunks": ["During the Linked Accounts project", "we were at risk of missing the release date", "because a downstream team's API contract changed close to release"],
+    "tags": ["Marketing Interview", "Q12", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q12: Type the first action sentence exactly.",
+    "answer": "I identified exactly what was blocked, reviewed the remaining frontend work, estimated the timeline impact, and communicated the risk early.",
+    "memoryHook": "Blocker; remaining work; impact; early communication",
+    "chunks": ["I identified exactly what was blocked", "reviewed the remaining frontend work", "estimated the timeline impact", "and communicated the risk early"],
+    "tags": ["Marketing Interview", "Q12", "Action", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q12: Type the recovery-plan sentence exactly.",
+    "answer": "I coordinated with the downstream and backend teams, focused on the critical integration work, and continued working on the parts that were not blocked.",
+    "memoryHook": "Coordinate; critical path; parallel work",
+    "chunks": ["I coordinated with the downstream and backend teams", "focused on the critical integration work", "and continued working on the parts that were not blocked"],
+    "tags": ["Marketing Interview", "Q12", "Recovery Plan", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q12: Type the result sentence exactly.",
+    "answer": "Because we communicated early and focused on the critical path, we resolved the dependency and still met the release deadline.",
+    "memoryHook": "Early communication; critical path; met deadline",
+    "chunks": ["Because we communicated early", "and focused on the critical path", "we resolved the dependency", "and still met the release deadline"],
+    "tags": ["Marketing Interview", "Q12", "Result", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q12: Type the learning sentence exactly.",
+    "answer": "I learned that when a deadline is at risk, I should communicate early, understand the real blocker, and bring a recovery plan instead of only reporting the problem.",
+    "memoryHook": "Communicate; blocker; recovery plan",
+    "chunks": ["I learned that when a deadline is at risk", "I should communicate early", "understand the real blocker", "and bring a recovery plan instead of only reporting the problem"],
+    "tags": ["Marketing Interview", "Q12", "Learning", "Verbatim"]
+  }
+]

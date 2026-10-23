@@ -21,7 +21,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --config vitest.config.mjs"
+    "test": "vitest run --config vitest.config.mjs",
+    "import:marketing": "node --import ./scripts/register-typescript.mjs scripts/import-marketing-interviews.ts"
   },
   "dependencies": {
     "highlight.js": "^11.12.0",

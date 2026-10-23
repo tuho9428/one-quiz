@@ -383,7 +383,7 @@ export function SmartStudy({
       question: currentQuestion,
       userAnswer: "",
       grade: { outcome: "incorrect", score: 0 },
-      mode: currentMode ?? currentQuestion.type,
+      mode: currentMode ?? (currentQuestion.type === "verbatim" ? "write" : currentQuestion.type),
       skipped: true,
       conceptsMissed: getQuestionConcepts(currentQuestion),
       responseTimeMs: responseTime(),

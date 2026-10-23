@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import {
   createStudyItem,
   deleteStudyItem,
+  deleteStudySet,
   ensureStudySet,
   exportStudySet,
   importStudyItems,
@@ -80,6 +81,21 @@ export async function updateStudySetAction(
     return { ok: true, message: "Study set details saved." };
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "The study set could not be updated." };
+  }
+}
+
+export async function deleteStudySetAction(
+  studySetId: string,
+): Promise<StudyMutationResult> {
+  try {
+    await deleteStudySet(studySetId);
+    revalidatePath("/");
+    revalidatePath("/sets");
+    revalidatePath("/dashboard");
+    revalidatePath("/import");
+    return { ok: true, message: "Study set deleted." };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "The study set could not be deleted." };
   }
 }
 

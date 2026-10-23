@@ -211,6 +211,8 @@ export function getModeLabel(mode: StudyMode): string {
       return "Write";
     case "rapid-recall":
       return "Rapid Recall";
+    case "exact-typing":
+      return "Exact Typing";
     case "debug-code":
       return "Debug / Code";
   }

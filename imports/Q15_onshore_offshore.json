@@ -1,0 +1,49 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q15: What is the answer structure for the onshore/offshore model?",
+    "answer": "Pacific time; India team; overlap hours; investigate first; share exact technical details; asynchronous tools; reduce back-and-forth",
+    "explanation": "Use these ideas in this order to reconstruct the answer.",
+    "tags": ["Marketing Interview", "Q15", "Bullet Recall", "Global Delivery"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q15: Type the opening sentence exactly.",
+    "answer": "Yes, I have worked in an onshore and offshore delivery model while working in the U.S. Pacific time zone with many IRIS engineers based in India.",
+    "memoryHook": "Yes; Pacific time; India engineers",
+    "chunks": ["Yes, I have worked in an onshore and offshore delivery model", "while working in the U.S. Pacific time zone", "with many IRIS engineers based in India"],
+    "tags": ["Marketing Interview", "Q15", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q15: Type the overlap-hours sentence exactly.",
+    "answer": "We used our overlapping hours to discuss requirements, API contracts, blockers, and technical issues.",
+    "memoryHook": "Overlap; requirements; APIs; blockers; issues",
+    "chunks": ["We used our overlapping hours", "to discuss requirements, API contracts", "blockers, and technical issues"],
+    "tags": ["Marketing Interview", "Q15", "Collaboration", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q15: Type the handoff sentence exactly.",
+    "answer": "I shared exact findings, such as the endpoint, error message, sample payload, or correlation ID, so the offshore engineer could continue without repeating the investigation.",
+    "memoryHook": "Endpoint; error; payload; correlation ID; no repeated work",
+    "chunks": ["I shared exact findings", "such as the endpoint, error message, sample payload, or correlation ID", "so the offshore engineer could continue", "without repeating the investigation"],
+    "tags": ["Marketing Interview", "Q15", "Handoff", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q15: Type the asynchronous-communication sentence exactly.",
+    "answer": "Outside the overlap hours, we used Slack, Jira, pull-request comments, and documentation to keep the work visible.",
+    "memoryHook": "Slack; Jira; PR comments; documentation",
+    "chunks": ["Outside the overlap hours", "we used Slack, Jira, pull-request comments, and documentation", "to keep the work visible"],
+    "tags": ["Marketing Interview", "Q15", "Asynchronous Work", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q15: Type the learning sentence exactly.",
+    "answer": "I learned that with a global team, a clear technical handoff is just as important as writing good code.",
+    "memoryHook": "Global team; technical handoff; good code",
+    "chunks": ["I learned that with a global team", "a clear technical handoff", "is just as important as writing good code"],
+    "tags": ["Marketing Interview", "Q15", "Learning", "Verbatim"]
+  }
+]

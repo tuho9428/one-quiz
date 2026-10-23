@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => {
 vi.mock("../db", () => ({ pool: mocks.pool }));
 vi.mock("../auth", () => ({ getCurrentUserId: mocks.getCurrentUserId }));
 
-import { updateStudyItem } from "./repository";
+import { deleteStudySet, updateStudyItem } from "./repository";
 
 const setRow = {
   id: "set-1",
@@ -68,5 +68,41 @@ describe("study item mutation authorization", () => {
 
     expect(mocks.client.query).toHaveBeenCalledWith("rollback");
     expect(mocks.client.query.mock.calls.some(([sql]) => typeof sql === "string" && sql.includes("update study_items"))).toBe(false);
+  });
+});
+
+describe("study set deletion authorization", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes only a set owned by the current user", async () => {
+    mocks.pool.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+    await deleteStudySet("set-1");
+
+    expect(mocks.pool.query).toHaveBeenCalledWith(
+      expect.stringContaining("id = $1 and owner_id = $2"),
+      ["set-1", "owner-1"],
+    );
+  });
+
+  it("rejects deletion when the owned set does not exist", async () => {
+    mocks.pool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    await expect(deleteStudySet("set-2")).rejects.toThrow(
+      "Study set not found or not accessible",
+    );
+  });
+
+  it("scopes anonymous deletion to anonymous sets", async () => {
+    mocks.pool.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+    await deleteStudySet("set-public", null);
+
+    expect(mocks.pool.query).toHaveBeenCalledWith(
+      expect.stringContaining("id = $1 and owner_id is null"),
+      ["set-public"],
+    );
   });
 });

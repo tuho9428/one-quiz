@@ -13,6 +13,7 @@ interface StudyModeChooserProps {
 }
 
 const modes = [
+  { key: "exact-typing", label: "Exact Typing", description: "Build exact sentences gradually with copy, hints, and recall.", eligibility: "exact-typing" as const },
   { key: "flashcards", label: "Flashcards", description: "Quick recall and spaced repetition", eligibility: "flashcard" as const },
   { key: "write", label: "Write", description: "Recall answers without hints", eligibility: "write" as const },
   { key: "multiple-choice", label: "Multiple Choice", description: "Recognize the answer, then confirm why", eligibility: "multiple-choice" as const },

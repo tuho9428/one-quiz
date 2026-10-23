@@ -3,7 +3,8 @@ export type StudyMode =
   | "multiple-choice"
   | "write"
   | "rapid-recall"
-  | "debug-code";
+  | "debug-code"
+  | "exact-typing";
 
 export type FlashcardRating = "again" | "hard" | "good" | "easy";
 
@@ -70,7 +71,22 @@ export interface DebugCodeQuestion extends BaseStudyQuestion {
   correctedCode?: string;
 }
 
+export interface VerbatimSentence {
+  memoryHook?: string;
+  id: string;
+  text: string;
+  chunks?: string[];
+}
+export interface VerbatimQuestion extends BaseStudyQuestion {
+  type: "verbatim";
+  question: string;
+  answer: string;
+  memoryHook?: string;
+  explanation?: string;
+  sentences: VerbatimSentence[];
+}
 export type StudyQuestion =
+  | VerbatimQuestion
   | FlashcardQuestion
   | MultipleChoiceQuestion
   | WriteQuestion
@@ -84,6 +100,8 @@ export interface StudyAttempt {
   userAnswer: string;
   outcome: AttemptOutcome;
   skipped?: boolean;
+  sentenceId?: string;
+  stage?: string;
   conceptsIncluded?: string[];
   conceptsMissed?: string[];
   grader?: GraderType;

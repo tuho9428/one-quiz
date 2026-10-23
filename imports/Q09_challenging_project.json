@@ -1,0 +1,57 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q9: What is the answer structure for the most challenging part of your recent project?",
+    "answer": "Large UI migration; System UI differences; phased rollout; multi-level validation; stable workflows; separate migration from redesign",
+    "explanation": "Use these ideas in this order. Recall the meaning, not every connecting word.",
+    "tags": ["Marketing Interview", "Q09", "Bullet Recall", "UI Migration"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type the opening sentence exactly.",
+    "answer": "One of the most challenging parts of my recent project was a large UI migration across Squiggly Chatbot, Case Details, User Case Management, and Guided Workflow.",
+    "memoryHook": "Challenge; large UI migration; four areas",
+    "chunks": ["One of the most challenging parts of my recent project", "was a large UI migration", "across Squiggly Chatbot, Case Details, User Case Management, and Guided Workflow"],
+    "tags": ["Marketing Interview", "Q09", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type the technical problem exactly.",
+    "answer": "The new Walmart System UI components did not behave or look exactly like the legacy components.",
+    "memoryHook": "System UI; different behavior and appearance",
+    "chunks": ["The new Walmart System UI components", "did not behave or look exactly", "like the legacy components"],
+    "tags": ["Marketing Interview", "Q09", "Problem", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type your goal exactly.",
+    "answer": "My goal was to modernize the UI without creating regressions or redesigning the application at the same time.",
+    "memoryHook": "Modernize; no regressions; no redesign",
+    "chunks": ["My goal was to modernize the UI", "without creating regressions", "or redesigning the application at the same time"],
+    "tags": ["Marketing Interview", "Q09", "Goal", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type the approach sentence exactly.",
+    "answer": "We migrated the application in phases, starting with lower-impact modules, and validated each change locally, through automated tests, in QA, and in Stage.",
+    "memoryHook": "Phases; lower impact; local; tests; QA; Stage",
+    "chunks": ["We migrated the application in phases", "starting with lower-impact modules", "and validated each change locally", "through automated tests, in QA, and in Stage"],
+    "tags": ["Marketing Interview", "Q09", "Action", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type the result sentence exactly.",
+    "answer": "In the end, we completed the migration in stages while keeping the main workflows stable and reducing regression risk.",
+    "memoryHook": "Completed in stages; stable workflows; lower risk",
+    "chunks": ["In the end, we completed the migration in stages", "while keeping the main workflows stable", "and reducing regression risk"],
+    "tags": ["Marketing Interview", "Q09", "Result", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q9: Type the learning sentence exactly.",
+    "answer": "I learned that breaking a large migration into smaller phases, validating each phase, and separating technical changes from UX changes makes the project easier to control and troubleshoot.",
+    "memoryHook": "Smaller phases; validate; separate technical and UX changes",
+    "chunks": ["I learned that breaking a large migration into smaller phases", "validating each phase", "and separating technical changes from UX changes", "makes the project easier to control and troubleshoot"],
+    "tags": ["Marketing Interview", "Q09", "Learning", "Verbatim"]
+  }
+]

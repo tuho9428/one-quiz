@@ -1,0 +1,56 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q13: What is the structure of your typical workday?",
+    "answer": "8:30 check messages; morning India overlap; focused development; onboarding support; end-of-day update; production support",
+    "explanation": "Recall the workday in chronological order.",
+    "tags": ["Marketing Interview", "Q13", "Bullet Recall", "Day to Day"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q13: Type the opening sentence exactly.",
+    "answer": "I work remotely as a React developer, and I usually start my day around 8:30 AM.",
+    "memoryHook": "Remote React developer; 8:30 AM",
+    "chunks": ["I work remotely as a React developer", "and I usually start my day", "around 8:30 AM"],
+    "tags": ["Marketing Interview", "Q13", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q13: Type the first-task sentence exactly.",
+    "answer": "I first check Slack, Jira, pull-request updates, and production messages for blockers or urgent issues.",
+    "memoryHook": "Slack; Jira; PRs; production",
+    "chunks": ["I first check Slack, Jira, pull-request updates", "and production messages", "for blockers or urgent issues"],
+    "tags": ["Marketing Interview", "Q13", "Morning", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q13: Type the collaboration sentence exactly.",
+    "answer": "I use the morning overlap with the India team to clarify requirements, discuss API changes, review blockers, and coordinate dependencies.",
+    "memoryHook": "India overlap; requirements; APIs; blockers; dependencies",
+    "chunks": ["I use the morning overlap with the India team", "to clarify requirements", "discuss API changes, review blockers", "and coordinate dependencies"],
+    "tags": ["Marketing Interview", "Q13", "Collaboration", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q13: Type the development sentence exactly.",
+    "answer": "Later, I focus on React and TypeScript development, API integration, debugging, testing, code review, and responding to pull-request comments.",
+    "memoryHook": "Build; integrate; debug; test; review",
+    "chunks": ["Later, I focus on React and TypeScript development", "API integration, debugging, and testing", "code review", "and responding to pull-request comments"],
+    "tags": ["Marketing Interview", "Q13", "Development", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q13: Type the closing sentence exactly.",
+    "answer": "At the end of the day, I post a Slack update with what I completed, any blockers, and what I plan to work on next.",
+    "memoryHook": "EOD update; completed; blockers; next",
+    "chunks": ["At the end of the day", "I post a Slack update", "with what I completed, any blockers", "and what I plan to work on next"],
+    "tags": ["Marketing Interview", "Q13", "Closing", "Verbatim"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Q13: What additional responsibilities can you mention?",
+    "answer": "Onboard U.S.-based engineers; help with setup and codebase questions; investigate production alerts with Grafana and OpenObserve",
+    "explanation": "Add these only when the interviewer wants more detail.",
+    "tags": ["Marketing Interview", "Q13", "Extra Detail", "Bullet Recall"]
+  }
+]

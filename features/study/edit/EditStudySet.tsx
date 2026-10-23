@@ -25,6 +25,7 @@ const EDIT_ITEMS_PAGE_SIZE = 5;
 function questionText(item: StudyQuestion): string {
   switch (item.type) {
     case "flashcard": return item.prompt;
+    case "verbatim":
     case "write": return item.question;
     case "multiple-choice": return item.question;
     case "debug-code": return item.problemStatement;
@@ -35,6 +36,7 @@ function itemTypeLabel(item: StudyQuestion): string {
   switch (item.type) {
     case "multiple-choice": return "Multiple Choice";
     case "debug-code": return "Debug / Code";
+    case "verbatim": return "Verbatim";
     case "write": return "Write";
     default: return "Flashcard";
   }

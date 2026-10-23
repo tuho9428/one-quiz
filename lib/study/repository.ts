@@ -10,7 +10,8 @@ import type {
   StudyQuestion,
   StudySet,
 } from "@/features/study/domain/types";
-import type { NormalizedPortableStudyItem, PortableStudyItem } from "@/features/study/import/portable";
+import { parsePortableStudyJson, portableItemFromStudyQuestion, type NormalizedPortableStudyItem, type PortableStudyItem } from "@/features/study/import/portable";
+import { canonicalImportItem } from "@/features/study/import/marketing-interviews";
 import { selectContinueStudying, type ContinueStudyingCandidate } from "../../features/study/dashboard/continue";
 import { pool } from "../db";
 import { getCurrentUserId } from "../auth";
@@ -54,11 +55,14 @@ export interface StudyItemRow {
   code_snippet: string | null;
   language: string | null;
   position: number;
+  memory_hook?: string | null;
+  sentences?: import("@/features/study/domain/types").VerbatimSentence[];
   options: Array<{ text: string; isCorrect: boolean }>;
   tags: string[];
 }
 
 interface StudySetRow {
+  source_key?: string;
   id: string;
   owner_id: string | null;
   title: string;
@@ -82,6 +86,8 @@ export function mapStudyItemRowToQuestion(row: StudyItemRow): StudyQuestion {
   };
 
   switch (row.type) {
+    case "verbatim":
+      return { ...base, type: "verbatim", question: row.question, answer: row.answer, memoryHook: row.memory_hook ?? undefined, sentences: row.sentences ?? [], explanation: row.explanation ?? undefined };
     case "flashcard":
       return { ...base, type: "flashcard", prompt: row.question, answer: row.answer, explanation: row.explanation ?? undefined, choices: row.options.map((option) => option.text), codeSnippet: row.code_snippet ?? undefined, language: row.code_snippet ? row.language ?? "text" : undefined, task: row.code_snippet ? row.task : undefined };
     case "write":
@@ -113,6 +119,7 @@ const studySetSelect = `
     ss.owner_id,
     ss.title,
     ss.description,
+    ss.source_key,
     ss.created_at,
     ss.updated_at,
     coalesce((
@@ -127,6 +134,8 @@ const studySetSelect = `
         'code_snippet', si.code_snippet,
         'language', si.language,
         'position', si.position,
+        'memory_hook', si.memory_hook,
+        'sentences', si.sentences,
         'options', coalesce((
           select json_agg(json_build_object('text', sio.option_text, 'isCorrect', sio.is_correct) order by sio.position)
           from study_item_options sio where sio.study_item_id = si.id
@@ -354,6 +363,7 @@ export function sourceKeyForItem(item: NormalizedPortableStudyItem): string {
     answer: item.answer.trim(),
     choices: item.choices ?? [],
     codeSnippet: item.codeSnippet ?? "",
+    ...(item.type === "verbatim" ? { memoryHook: item.memoryHook ?? "", sentences: item.sentences } : {}),
   });
   return createHash("sha256").update(canonical).digest("hex");
 }
@@ -402,6 +412,7 @@ export async function importStudyItems(
         ],
       );
       const itemId = itemResult.rows[0].id;
+      await saveVerbatimMetadata(client, itemId, item);
 
       await client.query("delete from study_item_options where study_item_id = $1", [itemId]);
       if (item.choices && item.choices.length > 0) {
@@ -446,6 +457,10 @@ function idFor(prefix: string, suffix = ""): string {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${suffix}`;
 }
 
+async function saveVerbatimMetadata(client: PoolClient, itemId: string, item: StudyItemMutationInput) {
+  await client.query("update study_items set memory_hook = $2, sentences = $3::jsonb where id = $1", [itemId, item.type === "verbatim" ? item.memoryHook ?? null : null, JSON.stringify(item.type === "verbatim" ? item.sentences ?? [] : [])]);
+}
+
 async function replaceItemRelations(client: PoolClient, itemId: string, item: StudyItemMutationInput): Promise<number> {
   await client.query("delete from study_item_options where study_item_id = $1", [itemId]);
   for (const [position, optionText] of (item.choices ?? []).entries()) {
@@ -476,6 +491,16 @@ async function replaceItemRelations(client: PoolClient, itemId: string, item: St
   return tagsCreatedOrReused;
 }
 
+async function insertNewStudyItem(client: PoolClient, studySetId: string, item: StudyItemMutationInput, position: number, itemId = idFor("item")): Promise<void> {
+  await client.query(
+    `insert into study_items (id, study_set_id, type, task, question, answer, explanation, code_snippet, language, position, source_key)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [itemId, studySetId, item.type, item.task ?? "explain-behavior", item.question, item.answer, item.explanation ?? null, item.codeSnippet ?? null, item.language ?? null, position, sourceKeyForItem(item)],
+  );
+  await saveVerbatimMetadata(client, itemId, item);
+  await replaceItemRelations(client, itemId, item);
+}
+
 export async function createStudyItem(
   studySetId: string,
   item: StudyItemMutationInput,
@@ -492,12 +517,7 @@ export async function createStudyItem(
       "select coalesce(max(position) + 1, 0) as next_position from study_items where study_set_id = $1",
       [studySetId],
     );
-    await client.query(
-      `insert into study_items (id, study_set_id, type, task, question, answer, explanation, code_snippet, language, position, source_key)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [itemId, studySetId, item.type, item.task ?? "explain-behavior", item.question, item.answer, item.explanation ?? null, item.codeSnippet ?? null, item.language ?? null, positionResult.rows[0].next_position, sourceKeyForItem(item)],
-    );
-    await replaceItemRelations(client, itemId, item);
+    await insertNewStudyItem(client, studySetId, item, positionResult.rows[0].next_position, itemId);
     await client.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
     await client.query("commit");
     return itemId;
@@ -533,6 +553,7 @@ export async function updateStudyItem(
        where id = $9 and study_set_id = $10`,
       [item.type, item.task ?? "explain-behavior", item.question, item.answer, item.explanation ?? null, item.codeSnippet ?? null, item.language ?? null, sourceKeyForItem(item), itemId, studySetId],
     );
+    await saveVerbatimMetadata(client, itemId, item);
     await replaceItemRelations(client, itemId, item);
     await client.query("update study_sets set updated_at = now() where id = $1", [studySetId]);
     await client.query("commit");
@@ -596,6 +617,8 @@ export async function exportStudySet(studySetId: string): Promise<PortableStudyI
   if (!set) throw new Error("Study set not found or not accessible");
   return set.questions.map((question) => {
     switch (question.type) {
+      case "verbatim":
+        return { type: "verbatim", question: question.question, answer: question.answer, memoryHook: question.memoryHook, sentences: question.sentences, tags: question.concepts, explanation: question.explanation };
       case "flashcard":
         return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts, choices: question.choices };
       case "write":
@@ -613,11 +636,11 @@ export async function createStudySession(input: { id: string; studySetId: string
   await pool.query("insert into study_sessions (id, owner_id, study_set_id, mode) values ($1, $2, $3, $4)", [input.id, ownerId, input.studySetId, input.mode]);
 }
 
-export async function recordStudyAttempt(attempt: StudyAttempt & { sessionId: string }): Promise<void> {
-  await pool.query(
-    `insert into study_attempts (id, session_id, study_item_id, mode, user_answer, score, result, response_time_ms, created_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [attempt.id, attempt.sessionId, attempt.questionId, attempt.mode, attempt.userAnswer, attempt.score ?? null, attempt.skipped ? "skipped" : attempt.outcome, attempt.responseTimeMs ?? null, attempt.timestamp],
+export async function recordStudyAttempt(attempt: StudyAttempt & { sessionId: string }, db: Pick<PoolClient, "query"> = pool): Promise<void> {
+  await db.query(
+    `insert into study_attempts (id, session_id, study_item_id, mode, user_answer, score, result, response_time_ms, created_at, sentence_id, stage, rating)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    [attempt.id, attempt.sessionId, attempt.questionId, attempt.mode, attempt.userAnswer, attempt.score ?? null, attempt.skipped ? "skipped" : attempt.outcome, attempt.responseTimeMs ?? null, attempt.timestamp, attempt.sentenceId ?? null, attempt.stage ?? null, attempt.rating ?? null],
   );
 }
 
@@ -655,9 +678,10 @@ function mapProgressRow(row: {
 export async function updateStudyProgress(
   update: StudyProgressUpdate,
   ownerId?: string | null,
+  db: Pick<PoolClient, "query"> = pool,
 ): Promise<void> {
   const resolvedOwnerId = ownerId === undefined ? await getCurrentUserId() : ownerId;
-  await pool.query(
+  await db.query(
     `insert into study_progress (id, owner_id, study_item_id, mastery_score, times_seen, times_correct, times_incorrect, consecutive_successes, last_reviewed_at, next_review_at, review_interval, last_result)
      values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      on conflict (id) do update set
@@ -735,4 +759,67 @@ export async function finishStudySession(
     "update study_sessions set completed_at = $2, duration_ms = $3, score = $4 where id = $1",
     [sessionId, completedAt, durationMs, score],
   );
+}
+
+
+export interface CreateOnlyStudySetImport {
+  id: string;
+  sourceKey: string;
+  title: string;
+  description: string;
+  ownerId: string | null;
+  items: NormalizedPortableStudyItem[];
+}
+export class StudySetImportConflict extends Error {
+  constructor(sourceKey: string, reason: string) {
+    super(`Import conflict for ${sourceKey}: ${reason}. No existing content or progress was changed.`);
+    this.name = "StudySetImportConflict";
+  }
+}
+function validateCreateOnlyImport(input: CreateOnlyStudySetImport) {
+  assertSetMetadata(input);
+  if (!input.id || !input.sourceKey || !input.items.length) throw new Error("Set ID, source key and non-empty items are required");
+  const parsed = parsePortableStudyJson(JSON.stringify(input.items));
+  if (parsed.syntaxError || parsed.errors.length || parsed.validItems.length !== input.items.length) throw new Error("Import contains invalid study items");
+  const hashes = input.items.map(sourceKeyForItem);
+  if (new Set(hashes).size !== hashes.length) throw new Error("Import contains duplicate items");
+}
+
+/** Read-only preflight. Content identity intentionally excludes progress and generated IDs. */
+export async function inspectCreateOnlyStudySetImport(input: CreateOnlyStudySetImport, db: Pick<PoolClient, "query"> = pool): Promise<"create" | "already-imported"> {
+  validateCreateOnlyImport(input);
+  const result = await db.query<StudySetRow>(`${studySetSelect} where ss.source_key = $1 or ss.id = $2`, [input.sourceKey, input.id]);
+  if (!result.rows.length) return "create";
+  if (result.rows.length !== 1 || result.rows[0].source_key !== input.sourceKey) throw new StudySetImportConflict(input.sourceKey, "destination ID is used by another source");
+  const row = result.rows[0];
+  if (row.owner_id !== input.ownerId) throw new StudySetImportConflict(input.sourceKey, "owner differs");
+  const existing = mapSetRow(row);
+  const portable = existing.questions.map(question => {
+    const item = portableItemFromStudyQuestion(question);
+    return { ...item, choices: item.choices?.length ? item.choices : undefined };
+  });
+  const parsed = parsePortableStudyJson(JSON.stringify(portable));
+  if (parsed.errors.length || parsed.syntaxError) throw new StudySetImportConflict(input.sourceKey, "stored content is invalid");
+  const actual = { title: existing.title, description: existing.description ?? "", items: parsed.validItems.map(canonicalImportItem) };
+  const expected = { title: input.title, description: input.description, items: input.items.map(canonicalImportItem) };
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new StudySetImportConflict(input.sourceKey, "stored content differs");
+  return "already-imported";
+}
+
+/** Create only: no updates/deletes/upserts of existing sets, items, attempts or progress. */
+export async function createOnlyStudySetImport(input: CreateOnlyStudySetImport): Promise<"created" | "already-imported"> {
+  validateCreateOnlyImport(input);
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    // Cooperating reruns serialize before checking for an existing source key.
+    await client.query("select pg_advisory_xact_lock(hashtextextended($1, 0))", [input.sourceKey]);
+    const status = await inspectCreateOnlyStudySetImport(input, client);
+    if (status === "already-imported") { await client.query("commit"); return status; }
+    await client.query("insert into study_sets (id, owner_id, title, description, source_key) values ($1,$2,$3,$4,$5)", [input.id, input.ownerId, input.title, input.description, input.sourceKey]);
+    for (const [position, item] of input.items.entries()) await insertNewStudyItem(client, input.id, item, position);
+    await client.query("commit");
+    return "created";
+  } catch (error) { await client.query("rollback"); throw error; }
+  finally { client.release(); }
 }

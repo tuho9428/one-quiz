@@ -65,6 +65,8 @@ function getContinueHref(continueStudying: ContinueStudyingCandidate): string {
 
 function modeRoute(mode: string): string | null {
   switch (mode.toLowerCase()) {
+    case "exact-typing":
+      return "exact-typing";
     case "flashcard":
     case "flashcards":
       return "flashcards";
@@ -89,6 +91,7 @@ function modeRoute(mode: string): string | null {
 
 function formatMode(mode: string): string {
   const route = modeRoute(mode);
+  if (route === "exact-typing") return "Exact Typing";
   if (route === "flashcards") return "Flashcards";
   if (route === "multiple-choice") return "Multiple Choice";
   if (route === "rapid-recall") return "Rapid Recall";

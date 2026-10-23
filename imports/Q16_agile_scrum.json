@@ -1,0 +1,17 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q16: Does your company work in a Sprint, Agile, or Scrum style?",
+    "answer": "Yes; two-week sprints; Agile and Scrum process",
+    "explanation": "This is a short factual answer. Keep it direct.",
+    "tags": ["Marketing Interview", "Q16", "Exact Fact", "Agile"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q16: Type the complete answer exactly.",
+    "answer": "Yes, we worked in two-week sprints, and our team followed an Agile and Scrum process.",
+    "memoryHook": "Yes; two weeks; Agile and Scrum",
+    "chunks": ["Yes, we worked in two-week sprints", "and our team followed", "an Agile and Scrum process"],
+    "tags": ["Marketing Interview", "Q16", "Complete Answer", "Verbatim"]
+  }
+]

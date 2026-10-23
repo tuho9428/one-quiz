@@ -13,6 +13,8 @@ import type {
 
 export { normalizeAnswer } from "../grading/text-scoring";
 
+import { gradeExactText } from "../modes/exact-typing/logic";
+
 const MAX_SCORE = 100;
 function clampScore(score: number): number {
   return Math.max(0, Math.min(MAX_SCORE, Math.round(score)));
@@ -38,6 +40,8 @@ export function gradeQuestion(
   userAnswer: string,
 ): GradeResult {
   switch (question.type) {
+    case "verbatim":
+      return gradeExactText(question.answer, userAnswer);
     case "flashcard":
       return normalizeAnswer(userAnswer) === normalizeAnswer(question.answer)
         ? { outcome: "correct", score: MAX_SCORE }
@@ -91,7 +95,7 @@ export function createStudyAttemptFromGrade(
     id: input.id,
     questionId: input.question.id,
     studySetId: input.question.studySetId,
-    mode: input.mode ?? input.question.type,
+    mode: input.mode ?? (input.question.type === "verbatim" ? "exact-typing" : input.question.type),
     userAnswer: input.userAnswer,
     outcome: input.grade.outcome,
     skipped: input.skipped,

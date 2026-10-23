@@ -1,5 +1,8 @@
+import { normalizeExactText } from "../modes/exact-typing/logic";
+
 import type {
   DebugCodeQuestion,
+  VerbatimSentence,
   FlashcardQuestion,
   MultipleChoiceQuestion,
   StudyQuestion,
@@ -7,6 +10,7 @@ import type {
 } from "../domain/types";
 
 export type PortableQuestionType =
+  | "verbatim"
   | "flashcard"
   | "write"
   | "multiple_choice"
@@ -16,6 +20,8 @@ export interface PortableStudyItem {
   type?: PortableQuestionType | "multiple-choice" | "debug-code";
   question: string;
   answer: string;
+  memoryHook?: string;
+  sentences?: VerbatimSentence[];
   explanation?: string;
   tags?: string[];
   choices?: string[];
@@ -25,9 +31,11 @@ export interface PortableStudyItem {
 }
 
 export interface NormalizedPortableStudyItem {
-  type: "flashcard" | "write" | "multiple-choice" | "debug-code";
+  type: "verbatim" | "flashcard" | "write" | "multiple-choice" | "debug-code";
   question: string;
   answer: string;
+  memoryHook?: string;
+  sentences?: VerbatimSentence[];
   explanation?: string;
   tags: string[];
   choices?: string[];
@@ -55,6 +63,7 @@ export interface PortableParseResult {
 }
 
 const TYPE_ALIASES: Record<string, NormalizedPortableStudyItem["type"]> = {
+  verbatim: "verbatim",
   flashcard: "flashcard",
   write: "write",
   multiple_choice: "multiple-choice",
@@ -109,6 +118,28 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
   const type = typeof rawType === "string" ? TYPE_ALIASES[rawType] : undefined;
   if (!type) errors.push("invalid question type");
 
+  let sentences: VerbatimSentence[] | undefined;
+  if (type === "verbatim") {
+    if (value.memoryHook !== undefined && typeof value.memoryHook !== "string") errors.push('"memoryHook" must be a string');
+    if (!Array.isArray(value.sentences) || value.sentences.length === 0) {
+      errors.push('verbatim requires a non-empty "sentences" array');
+    } else {
+      const ids = new Set<string>();
+      sentences = [];
+      for (const sentence of value.sentences) {
+        if (!isRecord(sentence) || !nonEmptyString(sentence.id) || !nonEmptyString(sentence.text)) {
+          errors.push("each sentence requires a non-empty id and text");
+          continue;
+        }
+        if (ids.has(sentence.id.trim())) errors.push("sentence IDs must be unique within an item");
+        ids.add(sentence.id.trim());
+        if (sentence.chunks !== undefined && (!Array.isArray(sentence.chunks) || !sentence.chunks.every(nonEmptyString))) errors.push("sentence chunks must be an array of non-empty strings");
+        if (sentence.memoryHook !== undefined && typeof sentence.memoryHook !== "string") errors.push("sentence memoryHook must be a string");
+        sentences.push({ id: sentence.id.trim(), text: sentence.text.trim(), memoryHook: typeof sentence.memoryHook === "string" ? sentence.memoryHook : undefined, chunks: Array.isArray(sentence.chunks) ? sentence.chunks.filter(nonEmptyString).map(s => s.trim()) : undefined });
+      }
+      if (nonEmptyString(value.answer) && normalizeExactText(sentences.map(s => s.text).join(" ")) !== normalizeExactText(value.answer)) errors.push("sentence texts must form the complete answer in order");
+    }
+  }
   const tags = cleanTags(value.tags);
   if (tags.error) errors.push(tags.error);
 
@@ -150,7 +181,7 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
   if (type === "debug-code" && !codeSnippet?.trim() && !hasValidExplicitChoices) {
     errors.push("debug_code requires codeSnippet");
   }
-  if (nonEmptyString(value.question) && requiresCodeContext(value.question) && !codeSnippet?.trim() && !(type === "debug-code" && hasValidExplicitChoices)) {
+  if (type !== "verbatim" && nonEmptyString(value.question) && requiresCodeContext(value.question) && !codeSnippet?.trim() && !(type === "debug-code" && hasValidExplicitChoices)) {
     errors.push("this question appears to require codeSnippet");
   }
 
@@ -172,6 +203,8 @@ function validateItem(value: unknown): { normalized?: NormalizedPortableStudyIte
     errors: [],
     normalized: {
       type,
+      sentences,
+      memoryHook: typeof value.memoryHook === "string" ? value.memoryHook.trim() : undefined,
       question: value.question.trim(),
       answer: value.answer.trim(),
       explanation: typeof value.explanation === "string" && value.explanation.trim()
@@ -222,6 +255,8 @@ export function parsePortableStudyJson(input: string): PortableParseResult {
 
 export function portableItemFromStudyQuestion(question: StudyQuestion): PortableStudyItem {
   switch (question.type) {
+    case "verbatim":
+      return { type: "verbatim", question: question.question, answer: question.answer, memoryHook: question.memoryHook, sentences: question.sentences, tags: question.concepts, explanation: question.explanation };
     case "flashcard":
       return { type: "flashcard", question: question.prompt, answer: question.answer, explanation: question.explanation, tags: question.concepts, choices: question.choices, codeSnippet: question.codeSnippet, language: question.language, task: question.task };
     case "write":
@@ -235,6 +270,17 @@ export function portableItemFromStudyQuestion(question: StudyQuestion): Portable
 
 export function portableTemplate(): string {
   return JSON.stringify([
+    {
+      type: "verbatim",
+      question: "How did you approach the migration?",
+      memoryHook: "Compare; migrate; validate",
+      answer: "I compared the components. We migrated in phases and validated each change.",
+      sentences: [
+        { id: "q01-s01", text: "I compared the components.", chunks: ["I compared", "the components"] },
+        { id: "q01-s02", text: "We migrated in phases and validated each change.", chunks: ["We migrated in phases", "and validated each change"] },
+      ],
+      tags: ["Interview", "Verbatim"],
+    },
     {
       type: "flashcard",
       question: "What is React?",
@@ -259,7 +305,7 @@ Return ONLY valid JSON. Do not use Markdown code fences. Do not include explanat
 
 Each item may use:
 {
-  "type": "flashcard | multiple_choice | write | debug_code",
+  "type": "flashcard | multiple_choice | write | debug_code | verbatim",
   "question": "string",
   "answer": "string",
   "explanation": "optional string",
@@ -272,7 +318,8 @@ Each item may use:
 Rules:
 - type is the original/preferred content presentation and is not exclusive; items with question and answer can be reused in Flashcards, Write, Rapid Recall, Smart Study, Weak Areas, and Exam
 - question and answer are required
-- use flashcard for basic recall
+- use verbatim for exact interview answers; include optional memoryHook and a sentences array of {id, text, chunks}; sentence texts must form the complete answer in order
+- use flashcard for basic recall; semicolon-separated recall points are supported
 - use multiple_choice when useful
 - use write for active recall and explanation
 - use debug_code when the material contains code debugging
@@ -288,6 +335,8 @@ export function toStudyQuestion(
   studySetId: string,
 ): StudyQuestion {
   switch (item.type) {
+    case "verbatim":
+      return { id, studySetId, type: "verbatim", question: item.question, answer: item.answer, memoryHook: item.memoryHook, sentences: item.sentences ?? [], concepts: item.tags, explanation: item.explanation };
     case "flashcard":
       return { id, studySetId, type: "flashcard", prompt: item.question, answer: item.answer, explanation: item.explanation, concepts: item.tags, choices: item.choices, codeSnippet: item.codeSnippet, language: item.language, task: item.task } satisfies FlashcardQuestion;
     case "write":

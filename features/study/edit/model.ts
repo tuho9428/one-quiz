@@ -11,6 +11,8 @@ export interface EditableStudyItem {
   codeSnippet: string;
   language: string;
   task: string;
+  memoryHook?: string;
+  sentences?: string;
 }
 
 export function editableItemFromQuestion(question: StudyQuestion): EditableStudyItem {
@@ -25,6 +27,8 @@ export function editableItemFromQuestion(question: StudyQuestion): EditableStudy
     codeSnippet: item.codeSnippet ?? "",
     language: item.language ?? "",
     task: item.task ?? "",
+    memoryHook: item.memoryHook ?? "",
+    sentences: JSON.stringify(item.sentences ?? [], null, 2),
   };
 }
 
@@ -46,6 +50,8 @@ export function portableItemFromEditable(value: EditableStudyItem): PortableStud
   const choices = value.choices.split("\n").map((choice) => choice.trim()).filter(Boolean);
   return {
     type: value.type,
+    memoryHook: value.type === "verbatim" ? value.memoryHook : undefined,
+    sentences: value.type === "verbatim" ? JSON.parse(value.sentences || "[]") : undefined,
     question: value.question,
     answer: value.answer,
     explanation: value.explanation.trim() || undefined,

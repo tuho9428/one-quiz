@@ -6,6 +6,7 @@ import { emptyEditableStudyItem, portableItemFromEditable, type EditableStudyIte
 import type { PortableStudyItem } from "../import/portable";
 
 const types = [
+  { value: "verbatim", label: "Verbatim / Exact Typing" },
   { value: "flashcard", label: "Flashcard / standard recall" },
   { value: "write", label: "Write preferred" },
   { value: "multiple_choice", label: "Multiple Choice" },
@@ -47,7 +48,9 @@ export function StudyItemEditor({
   function save(addAnother: boolean) {
     setStatus(null);
     startTransition(async () => {
-      const result = await onSave(portableItemFromEditable(value), addAnother);
+      let item: PortableStudyItem;
+      try { item = portableItemFromEditable(value); } catch { setStatus("Sentences must be valid JSON."); return; }
+      const result = await onSave(item, addAnother);
       setStatus(result.message);
       if (result.ok && addAnother) setValue(emptyEditableStudyItem());
     });
@@ -73,6 +76,10 @@ export function StudyItemEditor({
         <label className="block text-sm font-semibold">Answer
           <textarea required value={value.answer} onChange={(event) => update("answer", event.target.value)} rows={4} placeholder="A closure lets a function remember variables from its outer scope." className="editor-input mt-2" />
         </label>
+        {value.type === "verbatim" && <>
+          <label className="block text-sm font-semibold">Memory hook<input value={value.memoryHook ?? ""} onChange={event => update("memoryHook", event.target.value)} className="editor-input mt-2" /></label>
+          <label className="block text-sm font-semibold">Sentences JSON (id, text, optional chunks)<textarea required rows={10} value={value.sentences ?? "[]"} onChange={event => update("sentences", event.target.value)} className="editor-input mt-2 font-mono" /></label>
+        </>}
         <label className="block text-sm font-semibold">Explanation <span className="font-normal text-[#66807a]">optional</span>
           <textarea value={value.explanation} onChange={(event) => update("explanation", event.target.value)} rows={3} placeholder="Add a short explanation, example, or memory cue." className="editor-input mt-2" />
         </label>

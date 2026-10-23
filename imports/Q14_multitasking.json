@@ -1,0 +1,57 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q14: What is the answer structure for multitasking?",
+    "answer": "Feature work; production issue; assess business impact; save context; Grafana and OpenObserve; correlation ID; configuration difference; restore service; resume ticket",
+    "explanation": "The story demonstrates prioritization and controlled context switching, not doing everything simultaneously.",
+    "tags": ["Marketing Interview", "Q14", "Bullet Recall", "Multitasking"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the opening sentence exactly.",
+    "answer": "During one sprint, I was working on a planned feature while also covering production support.",
+    "memoryHook": "Sprint; feature work; production support",
+    "chunks": ["During one sprint", "I was working on a planned feature", "while also covering production support"],
+    "tags": ["Marketing Interview", "Q14", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the prioritization sentence exactly.",
+    "answer": "When a production issue came in, I checked the business impact, treated it as the higher priority, saved my current work, and noted where I had stopped.",
+    "memoryHook": "Impact; production first; save context",
+    "chunks": ["When a production issue came in", "I checked the business impact", "treated it as the higher priority", "saved my current work, and noted where I had stopped"],
+    "tags": ["Marketing Interview", "Q14", "Prioritization", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the investigation sentence exactly.",
+    "answer": "I reviewed Grafana metrics, searched the logs in OpenObserve, and used the correlation ID to trace the failing API request.",
+    "memoryHook": "Grafana; OpenObserve; correlation ID",
+    "chunks": ["I reviewed Grafana metrics", "searched the logs in OpenObserve", "and used the correlation ID", "to trace the failing API request"],
+    "tags": ["Marketing Interview", "Q14", "Investigation", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the solution sentence exactly.",
+    "answer": "I compared Production with Stage, identified an environment-specific configuration difference, and helped the team apply the correct configuration.",
+    "memoryHook": "Production versus Stage; configuration difference; fix",
+    "chunks": ["I compared Production with Stage", "identified an environment-specific configuration difference", "and helped the team apply the correct configuration"],
+    "tags": ["Marketing Interview", "Q14", "Solution", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the result sentence exactly.",
+    "answer": "Once production was stable, I returned to my original ticket, reviewed my notes, completed the implementation and tests, and kept the team updated.",
+    "memoryHook": "Stable; resume; notes; finish; update",
+    "chunks": ["Once production was stable", "I returned to my original ticket", "reviewed my notes", "completed the implementation and tests", "and kept the team updated"],
+    "tags": ["Marketing Interview", "Q14", "Result", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q14: Type the learning sentence exactly.",
+    "answer": "I learned that good multitasking is about prioritizing the most important problem, keeping clear context, and communicating early.",
+    "memoryHook": "Prioritize; preserve context; communicate",
+    "chunks": ["I learned that good multitasking", "is about prioritizing the most important problem", "keeping clear context", "and communicating early"],
+    "tags": ["Marketing Interview", "Q14", "Learning", "Verbatim"]
+  }
+]

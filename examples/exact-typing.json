@@ -1,0 +1,48 @@
+[
+  {
+    "type": "verbatim",
+    "question": "What was the most challenging part of your recent project?",
+    "memoryHook": "UI migration; phased rollout; no regressions",
+    "answer": "The most challenging part was a large UI migration. I compared the components and migrated in phases. We validated each change to avoid regressions.",
+    "sentences": [
+      {
+        "id": "q09-s01",
+        "text": "The most challenging part was a large UI migration.",
+        "chunks": [
+          "The most challenging part",
+          "was a large UI migration"
+        ]
+      },
+      {
+        "id": "q09-s02",
+        "text": "I compared the components and migrated in phases.",
+        "chunks": [
+          "I compared the components",
+          "and migrated in phases"
+        ]
+      },
+      {
+        "id": "q09-s03",
+        "text": "We validated each change to avoid regressions.",
+        "chunks": [
+          "We validated each change",
+          "to avoid regressions"
+        ]
+      }
+    ],
+    "tags": [
+      "Marketing Interview",
+      "Q09",
+      "Verbatim"
+    ]
+  },
+  {
+    "type": "flashcard",
+    "question": "What steps did you follow during the migration?",
+    "answer": "Compare components; migrate in phases; start with lower-impact modules; validate; trace differences; fix",
+    "tags": [
+      "Marketing Interview",
+      "Migration"
+    ]
+  }
+]

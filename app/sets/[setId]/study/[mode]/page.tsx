@@ -1,3 +1,5 @@
+import { ExactTypingStudy } from "@/features/study/modes/exact-typing/ExactTypingStudy";
+import { getExactProgress } from "@/features/study/modes/exact-typing/actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -12,7 +14,7 @@ import { canStudyItemInMode, toDebugCodeQuestion, toFlashcardQuestion, toMultipl
 
 export const dynamic = "force-dynamic";
 
-const supportedModes = ["flashcards", "multiple-choice", "write", "rapid-recall", "smart-study", "debug-code"] as const;
+const supportedModes = ["exact-typing", "flashcards", "multiple-choice", "write", "rapid-recall", "smart-study", "debug-code"] as const;
 type SupportedMode = (typeof supportedModes)[number];
 
 export default async function StudyModePage({
@@ -47,9 +49,12 @@ export default async function StudyModePage({
   const writeQuestions = sessionQuestions.filter((question) => canStudyItemInMode(question, "write")).map(toWriteQuestion);
   const debugQuestions = sessionQuestions.filter((question) => canStudyItemInMode(question, "debug-code")).map(toDebugCodeQuestion);
 
-  const modeLabel = mode === "flashcards" ? "Flashcards" : mode === "multiple-choice" ? "Multiple Choice" : mode === "rapid-recall" ? "Rapid Recall" : mode === "smart-study" ? "Smart Study" : mode === "debug-code" ? "Debug / Code" : "Write";
+  const modeLabel = mode === "exact-typing" ? "Exact Typing" : mode === "flashcards" ? "Flashcards" : mode === "multiple-choice" ? "Multiple Choice" : mode === "rapid-recall" ? "Rapid Recall" : mode === "smart-study" ? "Smart Study" : mode === "debug-code" ? "Debug / Code" : "Write";
   let studyContent;
   switch (mode as SupportedMode) {
+    case "exact-typing":
+      studyContent = <ExactTypingStudy questions={sessionQuestions.filter(q => q.type === "verbatim")} title={studySet.title} initialProgress={await getExactProgress(setId)} />;
+      break;
     case "flashcards":
       studyContent = <FlashcardStudy cards={flashcards} title={studySet.title} />;
       break;

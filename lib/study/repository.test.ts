@@ -62,3 +62,11 @@ describe("study item database mapping", () => {
     expect(mapStudyItemRowToQuestion(row({ type: "debug-code", explanation: "A prose explanation" }))).not.toHaveProperty("correctedCode");
   });
 });
+
+
+describe("verbatim database mapping", () => {
+  it("preserves sentence IDs, chunks and the memory hook", () => {
+    const sentences = [{ id: "q09-s01", text: "We tested.", chunks: ["We", "tested"] }];
+    expect(mapStudyItemRowToQuestion(row({ type: "verbatim", question: "What did you do?", answer: "We tested.", memory_hook: "Tests", sentences }))).toMatchObject({ type: "verbatim", memoryHook: "Tests", sentences });
+  });
+});

@@ -1,0 +1,56 @@
+[
+  {
+    "type": "flashcard",
+    "question": "Q11: What is the answer structure for a disagreement with a coworker?",
+    "answer": "Linked Accounts graph; horizontal Figma layout; scalability concern; explain trade-off; flexible layout; node dragging; usable result",
+    "explanation": "This is the primary coworker example. A manager variant is included at the end.",
+    "tags": ["Marketing Interview", "Q11", "Bullet Recall", "Conflict"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q11: Type the opening sentence exactly.",
+    "answer": "I would not call it a conflict, but there was a difference in technical opinion while we were working on the Linked Accounts graph.",
+    "memoryHook": "Not conflict; technical difference; Linked Accounts",
+    "chunks": ["I would not call it a conflict", "but there was a difference in technical opinion", "while we were working on the Linked Accounts graph"],
+    "tags": ["Marketing Interview", "Q11", "Opening", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q11: Type the disagreement sentence exactly.",
+    "answer": "A coworker preferred a horizontal layout to match the Figma design, but I was concerned that it would become too wide and difficult to navigate when a seller had many linked accounts.",
+    "memoryHook": "Horizontal Figma layout; too wide with many accounts",
+    "chunks": ["A coworker preferred a horizontal layout", "to match the Figma design", "but I was concerned that it would become too wide and difficult to navigate", "when a seller had many linked accounts"],
+    "tags": ["Marketing Interview", "Q11", "Problem", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q11: Type your response exactly.",
+    "answer": "Instead of simply rejecting the idea, I explained the scalability concern and proposed a flexible, force-directed layout with draggable nodes.",
+    "memoryHook": "Explain concern; flexible layout; draggable nodes",
+    "chunks": ["Instead of simply rejecting the idea", "I explained the scalability concern", "and proposed a flexible, force-directed layout", "with draggable nodes"],
+    "tags": ["Marketing Interview", "Q11", "Action", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q11: Type the result sentence exactly.",
+    "answer": "In the end, we kept the design usable while making the graph more scalable for different numbers of linked accounts.",
+    "memoryHook": "Usable; scalable; different node counts",
+    "chunks": ["In the end, we kept the design usable", "while making the graph more scalable", "for different numbers of linked accounts"],
+    "tags": ["Marketing Interview", "Q11", "Result", "Verbatim"]
+  },
+  {
+    "type": "verbatim",
+    "question": "Q11: Type the learning sentence exactly.",
+    "answer": "I learned to explain my reasoning, listen to what the other person is trying to achieve, and offer a practical alternative instead of simply rejecting an idea.",
+    "memoryHook": "Explain; listen; practical alternative",
+    "chunks": ["I learned to explain my reasoning", "listen to what the other person is trying to achieve", "and offer a practical alternative", "instead of simply rejecting an idea"],
+    "tags": ["Marketing Interview", "Q11", "Learning", "Verbatim"]
+  },
+  {
+    "type": "flashcard",
+    "question": "Q11: What is the optional manager-disagreement example?",
+    "answer": "Manager suggested search; filters already met the need; search increased scope; explain usage and effort; discuss trade-off; postpone search",
+    "explanation": "Use this only if the interviewer specifically asks about disagreeing with a manager.",
+    "tags": ["Marketing Interview", "Q11", "Manager Variant", "Bullet Recall"]
+  }
+]

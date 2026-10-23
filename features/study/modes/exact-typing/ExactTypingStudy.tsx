@@ -10,6 +10,7 @@ function elapsedTime(start: number | null): number {
 }
 
 const button = "min-h-11 rounded-xl border border-[#b9cfca] px-4 py-2 font-semibold hover:bg-[#e8f1ee] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0f766e] disabled:opacity-50 dark:border-[#3b5a54] dark:hover:bg-[#20332f]";
+const ratingOrder: FlashcardRating[] = ["again", "hard", "good", "easy"];
 const panel = "rounded-2xl border border-[#d5e2df] bg-[#fbfdfc] p-5 dark:border-[#2d4440] dark:bg-[#182320] sm:p-8";
 
 export function ExactTypingStudy({ questions, title, initialProgress }: { questions: VerbatimQuestion[]; title: string; initialProgress: ExactProgressMap }) {
@@ -24,6 +25,7 @@ export function ExactTypingStudy({ questions, title, initialProgress }: { questi
   const attemptId = useRef<string | null>(null);
   const startedAt = useRef<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const savingRef = useRef(false);
   const tasks = buildExactTasks(questions);
   const task = review ?? selectExactTask(tasks, progress);
   const question = questions.find(q => q.id === task?.questionId);
@@ -34,7 +36,8 @@ export function ExactTypingStudy({ questions, title, initialProgress }: { questi
   const memoryHook = task?.stage === "cumulative" ? question?.memoryHook : sentence?.memoryHook ?? question?.memoryHook;
 
   async function rate(rating: FlashcardRating) {
-    if (!task || !question || !checked || saving) return;
+    if (!task || !question || !checked || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true); setError("");
     try {
       sessionId.current ??= crypto.randomUUID();
@@ -44,10 +47,17 @@ export function ExactTypingStudy({ questions, title, initialProgress }: { questi
       attemptId.current = null; startedAt.current = null;
       inputRef.current?.focus();
     } catch { setError("Progress could not be saved. Your answer is still here. Try the rating again, or reload if this item was edited."); }
-    finally { setSaving(false); }
+    finally { savingRef.current = false; setSaving(false); }
   }
 
-  return <main className="min-h-[100dvh] bg-[#f3f6f5] px-4 py-8 text-[#16322e] dark:bg-[#101817] dark:text-[#edf5f1] sm:px-8 sm:py-12">
+  return <main onKeyDown={event => {
+    if (!checked || saving || event.repeat || event.nativeEvent.isComposing || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    if (!/^[0-3]$/.test(event.key)) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && target.isContentEditable) return;
+    event.preventDefault();
+    void rate(ratingOrder[Number(event.key)]);
+  }} className="min-h-[100dvh] bg-[#f3f6f5] px-4 py-8 text-[#16322e] dark:bg-[#101817] dark:text-[#edf5f1] sm:px-8 sm:py-12">
     <div className="mx-auto grid max-w-3xl gap-6">
       <header><p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0f766e] dark:text-[#5eead4]">Exact Typing</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h1><p className="mt-3 text-[#55716a] dark:text-[#a8bdb7]">Build exact sentences gradually with copy, hints, and recall.</p></header>
       {tasks.length > 0 && <div><label htmlFor="exact-progress">{completed} / {tasks.length} exercises learned · Progress saves after each rating</label><progress id="exact-progress" className="mt-2 h-2 w-full accent-[#0f766e]" value={completed} max={tasks.length} /></div>}
@@ -69,7 +79,8 @@ export function ExactTypingStudy({ questions, title, initialProgress }: { questi
           <ul className="mt-3 flex flex-wrap gap-2" aria-label="Word feedback">{wordDiff(task.target, answer).map((word, index) => <li key={index} className={`rounded-lg border px-2 py-1 text-sm ${word.kind === "correct" ? "border-emerald-500 text-emerald-800 dark:text-emerald-200" : "border-rose-400 text-rose-800 dark:text-rose-200"}`}>{word.kind === "correct" ? `Correct: ${word.actual}` : word.kind === "missing" ? `Missing: ${word.expected}` : word.kind === "extra" ? `Extra: ${word.actual}` : `Replace “${word.actual}” with “${word.expected}”`}</li>)}</ul>
           {grade.outcome !== "correct" && <p className="mt-4 leading-7"><strong>Target:</strong> {task.target}</p>}
           <p className="mt-4 text-sm">{grade.outcome === "correct" ? "Good or Easy advances. Again or Hard repeats this exercise." : "Rate the difficulty. This exercise repeats until you match it exactly and choose Good or Easy."}</p>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{(["again", "hard", "good", "easy"] as FlashcardRating[]).map(rating => <button key={rating} type="button" className={button} disabled={saving} onClick={() => void rate(rating)}>{rating[0].toUpperCase() + rating.slice(1)}</button>)}</div>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{ratingOrder.map((rating, index) => <button key={rating} type="button" className={button} disabled={saving} aria-keyshortcuts={String(index)} title={`Press ${index} after feedback`} onClick={() => void rate(rating)}>{rating[0].toUpperCase() + rating.slice(1)}<kbd className="ml-2 rounded border border-current px-1.5 py-0.5 font-mono text-xs opacity-70">{index}</kbd></button>)}</div>
+          <p className="mt-3 text-sm text-[#55716a] dark:text-[#a8bdb7]">After feedback, press 0 (Again), 1 (Hard), 2 (Good), or 3 (Easy).</p>
           {saving && <p role="status" className="mt-3">Saving progress…</p>}
           {error && <p role="alert" className="mt-3 text-rose-700 dark:text-rose-300">{error}</p>}
         </div>}
